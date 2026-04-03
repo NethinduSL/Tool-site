@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Downloader — Bit X Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ── THEME ── */
+:root{
+  --bg:#04040d;--s1:#0a0a20;--s2:#0e0e28;--s3:#131330;
+  --bd:rgba(120,110,220,0.08);--bd2:rgba(120,110,220,0.20);
+  --tx:#e8ecff;--tx2:#9098c0;
+  --grad:linear-gradient(135deg,#4f8ef7,#7c5cfc,#a855f7);
+  --card:rgba(10,10,30,.82);--nav:rgba(4,4,13,.90);
+  --inp:rgba(14,14,40,.9);--chip:rgba(20,20,50,.9);
+  --sidebar-w:62px;
+}
+[data-theme="light"]{
+  --bg:#f0f0fa;--s1:#e4e6f8;--s2:#d8daf0;--s3:#cccfe8;
+  --bd:rgba(90,80,200,.10);--bd2:rgba(90,80,200,.22);
+  --tx:#111130;--tx2:#4a4a82;
+  --card:rgba(255,255,255,.88);--nav:rgba(240,240,250,.92);
+  --inp:rgba(232,234,250,.95);--chip:rgba(220,222,245,.9);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
+a{color:inherit;text-decoration:none;}
+*{-webkit-tap-highlight-color:transparent;}
+button{font-family:'Sora',sans-serif;}
+
+/* ── CURSOR ── */
+#cur,#curR{position:fixed;pointer-events:none;z-index:9999;border-radius:50%;transform:translate(-50%,-50%);}
+#cur{width:10px;height:10px;background:#7c5cfc;mix-blend-mode:screen;}
+#curR{width:36px;height:36px;border:1.5px solid rgba(124,92,252,.5);z-index:9998;transition:width .18s,height .18s;mix-blend-mode:screen;}
+@media(pointer:coarse){#cur,#curR{display:none !important;}}
+
+/* ── AMBIENT ── */
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.025;mix-blend-mode:overlay;}
+.orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(110px);z-index:0;}
+.o1{width:600px;height:600px;background:radial-gradient(circle,rgba(79,142,247,.10) 0%,transparent 70%);top:-160px;left:-120px;}
+.o2{width:500px;height:500px;background:radial-gradient(circle,rgba(168,85,247,.08) 0%,transparent 70%);bottom:-120px;right:-100px;}
+[data-theme=light] .o1{background:radial-gradient(circle,rgba(79,142,247,.06) 0%,transparent 70%);}
+[data-theme=light] .o2{background:radial-gradient(circle,rgba(168,85,247,.04) 0%,transparent 70%);}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(124,92,252,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(124,92,252,.025) 1px,transparent 1px);
+  background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 80% at 50% 40%,black 30%,transparent 100%);}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--nav);backdrop-filter:blur(28px);border-bottom:1px solid var(--bd2);}
+.nav-logo{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.logo-box{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;}
+.nav-logo span{font-size:15px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-r{display:flex;align-items:center;gap:7px;}
+.icon-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;}
+.icon-btn:hover{background:var(--s1);color:var(--tx);}
+.nav-back{display:flex;align-items:center;gap:6px;color:var(--tx2);font-size:12px;font-weight:600;padding:7px 13px;border-radius:9px;border:1px solid var(--bd2);transition:all .2s;cursor:pointer;}
+.nav-back:hover{color:var(--tx);background:var(--s1);}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:100vh;padding-top:60px;}
+
+/* ── RIGHT SIDEBAR ── */
+.rsidebar{
+  position:fixed;right:0;top:60px;bottom:0;width:var(--sidebar-w);
+  background:var(--nav);border-left:1px solid var(--bd2);backdrop-filter:blur(24px);
+  display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;
+  z-index:150;overflow-y:auto;overflow-x:hidden;
+}
+.rsidebar::-webkit-scrollbar{width:0;}
+.sb-btn{
+  width:46px;height:46px;border-radius:12px;border:1px solid transparent;
+  background:transparent;color:var(--tx2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all .22s;position:relative;flex-shrink:0;
+}
+.sb-btn:hover{background:var(--s1);color:var(--tx);border-color:var(--bd2);}
+.sb-btn.active{
+  background:rgba(124,92,252,.15);
+  border-color:rgba(124,92,252,.45);
+  color:#b4a4ff;
+  box-shadow:0 0 18px rgba(124,92,252,.18);
+}
+.sb-btn .sb-tooltip{
+  position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:var(--s2);border:1px solid var(--bd2);color:var(--tx);
+  font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;
+  font-family:'Sora',sans-serif;
+}
+.sb-btn:hover .sb-tooltip{opacity:1;}
+.sb-sep{width:30px;height:1px;background:var(--bd2);margin:4px 0;flex-shrink:0;}
+.sb-active-bar{
+  position:absolute;left:0;width:2px;height:46px;background:var(--grad);
+  border-radius:0 2px 2px 0;transition:top .25s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;margin-right:var(--sidebar-w);padding:28px 28px 80px 28px;max-width:calc(100% - var(--sidebar-w));position:relative;z-index:2;}
+.content-wrap{max-width:860px;margin:0 auto;}
+
+/* ── SECTION ── */
+.section{display:none;}
+.section.visible{display:block;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.sec-hd{margin-bottom:22px;}
+.sec-title{font-family:'Outfit',sans-serif;font-size:clamp(24px,4vw,40px);font-weight:900;letter-spacing:-.02em;line-height:1.1;margin-bottom:6px;display:flex;align-items:center;gap:12px;}
+.sec-title .sec-ico{font-size:clamp(22px,3.5vw,36px);}
+.sec-title span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sec-sub{color:var(--tx2);font-size:13.5px;line-height:1.7;}
+
+/* ── DL BOX ── */
+.dlbox{background:var(--card);border:1px solid var(--bd2);border-radius:20px;padding:22px;
+  position:relative;overflow:hidden;backdrop-filter:blur(14px);}
+.dlbox::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(124,92,252,.45),transparent);}
+.url-row{display:flex;gap:9px;align-items:stretch;}
+.url-inp{flex:1;padding:12px 15px;border-radius:11px;background:var(--inp);border:1px solid var(--bd2);
+  color:var(--tx);font-family:'Sora',sans-serif;font-size:13px;outline:none;transition:all .25s;min-width:0;}
+.url-inp:focus{border-color:rgba(124,92,252,.55);box-shadow:0 0 0 3px rgba(124,92,252,.08);}
+.url-inp::placeholder{color:var(--tx2);opacity:.55;}
+.go-btn{padding:12px 20px;border-radius:11px;background:var(--grad);color:#fff;border:none;
+  font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:7px;white-space:nowrap;
+  transition:all .22s;box-shadow:0 0 22px rgba(124,92,252,.22);}
+.go-btn:hover:not(:disabled){box-shadow:0 0 34px rgba(124,92,252,.50);transform:translateY(-1px);}
+.go-btn:disabled{opacity:.45;cursor:default;transform:none;}
+
+/* Source selector — all platforms */
+.src-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.src-label{font-size:11px;font-weight:700;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.src-select{flex:1;min-width:180px;padding:8px 12px;border-radius:9px;background:var(--inp);border:1px solid var(--bd2);
+  color:var(--tx);font-family:'Sora',sans-serif;font-size:12px;outline:none;cursor:pointer;
+  transition:border-color .2s;}
+.src-select:focus{border-color:rgba(124,92,252,.55);}
+.src-select option{background:var(--s2);color:var(--tx);}
+/* mode indicator pill */
+.src-mode{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;
+  border-radius:20px;border:1px solid;white-space:nowrap;transition:all .2s;}
+.src-mode.mode-fallback{background:rgba(79,142,247,.1);border-color:rgba(79,142,247,.35);color:#7eb8ff;}
+.src-mode.mode-all{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3);color:#4ade80;}
+.src-mode.mode-single{background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.35);color:#c084fc;}
+
+/* ── STATUS BAR ── */
+.sbar{margin-top:14px;padding:11px 14px;border-radius:10px;background:rgba(124,92,252,.06);
+  border:1px solid rgba(124,92,252,.15);display:none;align-items:center;gap:10px;font-size:12.5px;color:var(--tx2);}
+.sbar.show{display:flex;}
+.sbar .spin{animation:spin .8s linear infinite;color:#7c5cfc;font-size:15px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tdots{display:flex;gap:5px;margin-left:auto;flex-shrink:0;flex-wrap:wrap;max-width:120px;justify-content:flex-end;}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--bd2);transition:background .25s;flex-shrink:0;}
+.tdot.done{background:#4ade80;}
+.tdot.active{background:#7c5cfc;animation:pdot .8s ease-in-out infinite;}
+.tdot.fail{background:#f87171;}
+@keyframes pdot{0%,100%{opacity:.5}50%{opacity:1;transform:scale(1.3)}}
+
+/* ── RESULT AREA ── */
+.result-area{margin-top:16px;}
+.err-box{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.22);border-radius:14px;
+  padding:16px 18px;color:#fca5a5;font-size:13px;display:flex;align-items:flex-start;gap:12px;line-height:1.55;}
+.err-box i{font-size:17px;flex-shrink:0;margin-top:1px;}
+
+/* ── RESULT CARD ── */
+.rcard{background:var(--card);border:1px solid var(--bd2);border-radius:18px;overflow:hidden;
+  animation:fadeUp .35s ease;backdrop-filter:blur(14px);}
+
+/* Media header */
+.mhd{display:flex;gap:14px;align-items:flex-start;padding:18px 18px 14px;}
+.mthumb-wrap{flex-shrink:0;position:relative;}
+.mthumb{border-radius:11px;object-fit:cover;border:1px solid var(--bd2);display:block;background:var(--s2);}
+.mthumb.wide{width:160px;height:90px;}
+.mthumb.sq{width:90px;height:90px;}
+.play-badge{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.3);border-radius:11px;pointer-events:none;
+}
+.play-badge i{font-size:22px;color:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));}
+.minfo{flex:1;min-width:0;}
+.mtitle{font-size:15px;font-weight:700;line-height:1.4;word-break:break-word;}
+.mmeta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;
+  color:var(--tx2);background:var(--chip);border:1px solid var(--bd);border-radius:5px;padding:3px 8px;}
+.chip i{font-size:9px;}
+
+/* Divider */
+.sep{height:1px;background:var(--bd);margin:0 18px;}
+
+/* DL rows */
+.dl-rows{padding:14px 18px 18px;display:flex;flex-direction:column;gap:9px;}
+.dl-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--inp);border:1px solid var(--bd);border-radius:11px;padding:11px 14px;}
+.dl-row-l{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.dl-ico{width:30px;height:30px;border-radius:7px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.18);
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#a5b4fc;flex-shrink:0;}
+.dl-lbl{font-size:12.5px;font-weight:700;line-height:1.2;}
+.dl-meta-t{font-size:10.5px;color:var(--tx2);margin-top:2px;}
+.dl-link{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:8px;
+  background:var(--grad);color:#fff;font-family:'Sora',sans-serif;font-size:11.5px;font-weight:700;
+  text-decoration:none;white-space:nowrap;border:none;cursor:pointer;
+  transition:all .2s;box-shadow:0 0 14px rgba(124,92,252,.18);}
+.dl-link:hover{box-shadow:0 0 26px rgba(124,92,252,.45);transform:translateY(-1px);}
+
+/* Section label */
+.slabel{padding:14px 18px 0;font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:#a5b4fc;display:flex;align-items:center;gap:7px;}
+
+/* Wallpaper grid */
+.wgrid{padding:14px 18px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.witem{border-radius:9px;overflow:hidden;border:1px solid var(--bd);position:relative;}
+.witem img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
+.wover{position:absolute;inset:0;background:rgba(4,4,13,.6);display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;}
+.witem:hover .wover{opacity:1;}
+.wover a{width:34px;height:34px;border-radius:50%;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;}
+
+/* Song list */
+.slist{padding:0 18px 18px;display:flex;flex-direction:column;gap:9px;}
+.sitem{display:flex;align-items:center;gap:12px;background:var(--inp);border:1px solid var(--bd);border-radius:11px;padding:11px 13px;}
+.sthumb{width:48px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--s3);}
+.sinfo{flex:1;min-width:0;}
+.stitle{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.smeta{font-size:10.5px;color:var(--tx2);margin-top:2px;}
+.sfail{font-size:11px;color:#f87171;flex-shrink:0;}
+
+/* Sticker grid */
+.stgrid{padding:12px 18px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:7px;}
+.stcell{background:var(--inp);border:1px solid var(--bd);border-radius:9px;padding:6px;text-align:center;}
+.stcell img{width:54px;height:54px;object-fit:contain;}
+
+/* Info cards */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;margin-top:40px;}
+.icard{background:var(--card);border:1px solid var(--bd);border-radius:15px;padding:18px;backdrop-filter:blur(8px);}
+.icard-ico{font-size:19px;margin-bottom:9px;color:#a5b4fc;}
+.icard-title{font-size:13.5px;font-weight:700;margin-bottom:4px;}
+.icard-desc{font-size:12px;color:var(--tx2);line-height:1.6;}
+
+/* Multiple result cards stacked */
+.results-stack{display:flex;flex-direction:column;gap:14px;}
+.src-badge{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:11px;font-weight:700;color:var(--tx2);}
+.src-badge span{background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.2);border-radius:5px;padding:2px 8px;color:#a5b4fc;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(124,92,252,.3);border-radius:4px;}
+
+/* ── MOBILE ── */
+@media(max-width:640px){
+  nav{padding:12px 14px;}
+  :root{--sidebar-w:52px;}
+  .main{padding:18px 14px 60px 14px;}
+  .url-row{flex-direction:column;}
+  .go-btn{justify-content:center;}
+  .mhd{flex-direction:column;}
+  .mthumb.wide,.mthumb.sq{width:100%;height:180px;}
+  .mthumb-wrap{width:100%;}
+  .dl-row{flex-wrap:wrap;}
+  .dl-link{width:100%;justify-content:center;}
+  .wgrid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+}
+</style>
+<script src="limit.js"></script>
+</head>
+<body>
+<div id="cur"></div><div id="curR"></div>
+<div class="orb o1"></div><div class="orb o2"></div>
+<div class="grid-bg"></div>
+
+<div id="site-nav" data-usage="Paste URL → Download media"></div>
+
+<div class="layout">
+  <!-- MAIN CONTENT -->
+  <div class="main" id="mainArea">
+    <div class="content-wrap" id="contentWrap">
+      <!-- Sections injected by JS -->
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="rsidebar" id="rsidebar">
+    <div class="sb-active-bar" id="sbBar"></div>
+    <!-- Buttons injected by JS -->
+  </div>
+</div>
+
+<script>
+/* ── CURSOR ── */
+const CU=document.getElementById('cur'),CR=document.getElementById('curR');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;CU.style.left=mx+'px';CU.style.top=my+'px';});
+(function L(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;CR.style.left=rx+'px';CR.style.top=ry+'px';requestAnimationFrame(L);})();
+
+/* ── THEME ── */
+const TB=document.getElementById('themeBtn');
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('bx_t',t);TB.innerHTML=t==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';}
+applyTheme(localStorage.getItem('bx_t')||'dark');
+TB.onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+
+const API='https://bit-x-apis.vercel.app';
+
+/* ════════════════════════════════════════════════════
+   PLATFORM DEFINITIONS
+   Each chain step has:
+     ep      – endpoint path
+     param   – 'url' or 'q'  ← API query param variable (edit here)
+     parse   – result parser
+     render  – optional renderer type
+════════════════════════════════════════════════════ */
+const PLATFORMS=[
+
+  /* ── YouTube MP3 ── */
+  {id:'ytmp3',name:'YouTube MP3',icon:'fa-youtube',fab:true,color:'#ef4444',isSearch:false,
+   placeholder:'https://youtu.be/... or https://youtube.com/watch?v=...',
+   sub:'Download YouTube videos as MP3 audio',
+   chain:[
+     {ep:'/ytdl2', param:'url',  /* youtube_ytconvert.js → const { url, format, quality } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.downloadUrl)return{ok:false};
+       return{ok:true,title:r.response.title||'YouTube Audio',
+         thumb:r.response.thumbnail||'',isVideo:false,
+         src:'ytconvert.org',extra:[r.response.quality||'128k'],
+         items:[{label:'MP3 Audio',meta:r.response.quality||'128k',url:r.response.downloadUrl,icon:'fa-music'}]};
+     }}
+   ]
+  },
+
+  /* ── TikTok ── */
+  {id:'tiktok',name:'TikTok',icon:'fa-tiktok',fab:true,color:'#e879f9',isSearch:false,
+   placeholder:'https://www.tiktok.com/@user/video/...',
+   sub:'Download TikTok videos without watermark',
+   chain:[
+     {ep:'/tiktok', param:'q',
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response;const items=[];
+       const links=d.links||[];
+       links.forEach(lnk=>{
+         if(lnk.type==='video_hd')items.push({label:'HD Video',meta:'No watermark',url:lnk.link,icon:'fa-film'});
+         else if(lnk.type==='video_nowm')items.push({label:'SD Video',meta:'No watermark',url:lnk.link,icon:'fa-video'});
+         else if(lnk.type==='video_wm')items.push({label:'With Watermark',meta:'Original',url:lnk.link,icon:'fa-video'});
+         else if(lnk.type==='audio')items.push({label:'Audio Only',meta:'MP3',url:lnk.link,icon:'fa-music'});
+       });
+       return{ok:items.length>0,title:d.title||'TikTok Video',
+         thumb:d.thumbnail||d.cover||'',isVideo:true,
+         src:'tiktokio.com',extra:[],items};
+     }}
+   ]
+  },
+
+  /* ── Instagram ── */
+  {id:'instagram',name:'Instagram',icon:'fa-instagram',fab:true,color:'#f472b6',isSearch:false,
+   placeholder:'https://www.instagram.com/p/... or /reel/...',
+   sub:'Download Instagram reels, posts and photos',
+   chain:[
+     {ep:'/instagram', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response.data||r.response;
+       const medias=d.medias||d.items||d.links||[];
+       const thumb=d.thumbnail||d.thumb||d.cover||'';
+       const title=d.title||d.caption||'Instagram Media';
+       const items=medias.map(m=>({
+         label:m.quality||m.label||m.type||'Media',meta:m.extension||m.ext||'',
+         url:m.url||m.download_url||m.src||'',
+         icon:(m.type||'').includes('image')?'fa-image':'fa-film'
+       })).filter(i=>i.url);
+       if(!items.length&&d.url)items.push({label:'Download',meta:'',url:d.url,icon:'fa-film'});
+       return{ok:items.length>0,title,thumb,isVideo:true,src:'FastVideoSave',extra:[],items};
+     }},
+     {ep:'/instagram2', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       return{ok:true,title:'Instagram Media',thumb:r.response.thumbnail||'',isVideo:true,
+         src:'Instasave',extra:[],items:[{label:'Download Media',meta:'',url:r.response.url,icon:'fa-film'}]};
+     }},
+     {ep:'/instagram3', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       return{ok:true,title:d.title||'Instagram Media',thumb:'',isVideo:true,src:'NetDNA',
+         extra:d.username?[`@${d.username}`]:[],
+         items:[{label:'Download Media',meta:d.username?`@${d.username}`:'',url:d.url,icon:'fa-film'}]};
+     }},
+     {ep:'/instagram4', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       return{ok:true,title:'Instagram Media',thumb:d.thumbnail||'',isVideo:true,src:'SaveFree',
+         extra:d.size?[d.size]:[],
+         items:[{label:'Download '+(d.type||'Media'),meta:d.size||'',url:d.url,
+           icon:d.type==='image'?'fa-image':'fa-film'}]};
+     }},
+     {ep:'/instagram5', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       return{ok:true,title:'Instagram Media',thumb:'',isVideo:true,src:'Downloadgram',extra:[],
+         items:[{label:'Download Media',meta:'',url:r.response.url,icon:'fa-film'}]};
+     }}
+   ]
+  },
+
+  /* ── Facebook ── */
+  {id:'facebook',name:'Facebook',icon:'fa-facebook',fab:true,color:'#4f8ef7',isSearch:false,
+   placeholder:'https://www.facebook.com/watch?v=…',
+   sub:'Download Facebook videos in HD & SD',
+   chain:[
+     {ep:'/facebook1', param:'q',  /* from source: const { q } = req.query */
+      label:'Source 1 — fget.io',
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response;const items=[];
+       if(d.hd)items.push({label:'HD Quality',meta:'Best resolution',url:d.hd,icon:'fa-film'});
+       if(d.sd)items.push({label:'SD Quality',meta:'Standard res',url:d.sd,icon:'fa-video'});
+       return{ok:items.length>0,title:d.title||'Facebook Video',thumb:d.cover||'',isVideo:true,src:'fget.io',extra:[],items};
+     }},
+     {ep:'/facebook2', param:'q',  /* from source: const { q } = req.query */
+      label:'Source 2 — ExpertsPHP',
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       return{ok:true,title:'Facebook Video',thumb:'',isVideo:true,src:'ExpertsPHP',extra:[],
+         items:[{label:'Download Video',meta:d.type||'mp4',url:d.url,icon:'fa-film'}]};
+     }},
+     {ep:'/facebook3', param:'q',  /* from source: const { q } = req.query */
+      label:'Source 3 — fbdown.blog',
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response;const L=d.links||{};const items=[];
+       if(L.hd)items.push({label:'HD Quality',meta:'Best resolution',url:L.hd,icon:'fa-film'});
+       if(L.sd)items.push({label:'SD Quality',meta:'Standard res',url:L.sd,icon:'fa-video'});
+       if(L.audio)items.push({label:'Audio Only',meta:'MP3',url:L.audio,icon:'fa-music'});
+       return{ok:items.length>0,title:d.title||'Facebook Video',thumb:d.thumbnail||'',isVideo:true,src:'fbdown.blog',extra:d.duration?[d.duration]:[],items};
+     }},
+     {ep:'/facebook4', param:'q',  /* from source: const { q } = req.query */
+      label:'Source 4 — menarail',
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response;
+       const items=(d.links||[]).map(l=>({label:l.quality||'Video',meta:l.size||'',url:l.url,icon:'fa-film'})).filter(i=>i.url);
+       return{ok:items.length>0,title:d.title||'Facebook Video',thumb:d.thumbnail||'',isVideo:true,src:'menarail',extra:[],items};
+     }},
+     {ep:'/facebook5', param:'q',  /* from source: const { q } = req.query */
+      label:'Source 5 — SolutionExist',
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response;const items=[];
+       if(d.hd)items.push({label:'HD Quality',meta:'',url:d.hd,icon:'fa-film'});
+       if(d.sd)items.push({label:'SD Quality',meta:'',url:d.sd,icon:'fa-video'});
+       return{ok:items.length>0,title:'Facebook Video',thumb:'',isVideo:true,src:'SolutionExist',extra:[],items};
+     }}
+   ]
+  },
+
+  /* ── Spotify ── */
+  {id:'spotify',name:'Spotify',icon:'fa-spotify',fab:true,color:'#4ade80',isSearch:false,
+   placeholder:'https://open.spotify.com/track/...',
+   sub:'Download Spotify tracks as MP3',
+   chain:[
+     {ep:'/spotify4', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       return{ok:true,title:d.title||'Spotify Track',thumb:d.thumbnail||'',isVideo:false,src:'Spotdown',
+         extra:d.artist?[d.artist]:[],
+         items:[{label:'Download MP3',meta:d.artist||'',url:d.url,icon:'fa-music'}]};
+     }},
+     {ep:'/spotify', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       return{ok:true,title:d.title||'Spotify Track',thumb:d.thumbnail||'',isVideo:false,src:'Downloaderize',
+         extra:[d.author,d.duration].filter(Boolean),
+         items:[{label:'Download MP3',meta:d.author||'',url:d.url,icon:'fa-music'}]};
+     }},
+     {ep:'/spotify3', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       return{ok:true,title:'Spotify Track',thumb:'',isVideo:false,src:'Spowload',extra:[],
+         items:[{label:'Download MP3',meta:'',url:r.response.url,icon:'fa-music'}]};
+     }}
+   ]
+  },
+
+  /* ── SoundCloud ── */
+  {id:'soundcloud',name:'SoundCloud',icon:'fa-soundcloud',fab:true,color:'#fb923c',isSearch:false,
+   placeholder:'https://soundcloud.com/artist/trackname',
+   sub:'Download SoundCloud audio tracks',
+   chain:[
+     {ep:'/soundcloud', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       const thumb=d.thumbnail?d.thumbnail.replace('-large','-t500x500'):'';
+       return{ok:true,title:d.title||'SoundCloud Track',thumb,isVideo:false,src:'thescdown',
+         extra:[d.author,d.duration].filter(Boolean),
+         items:[{label:'Download Audio',meta:d.author||'',url:d.url,icon:'fa-music'}]};
+     }}
+   ]
+  },
+
+  /* ── Mediafire ── */
+  {id:'mediafire',name:'Mediafire',icon:'fa-cloud-arrow-down',fab:false,color:'#fbbf24',isSearch:false,
+   placeholder:'https://www.mediafire.com/file/...',
+   sub:'Get direct download link from Mediafire',
+   chain:[
+     {ep:'/mediafire', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response||!r.response.url)return{ok:false};
+       const d=r.response;
+       return{ok:true,title:d.title||'Mediafire File',thumb:'',isVideo:false,src:'Mediafire',
+         extra:d.size?[d.size]:[],
+         items:[{label:'Download File',meta:d.size||'',url:d.url,icon:'fa-file'}]};
+     }}
+   ]
+  },
+
+  /* ── Mega.nz ── */
+  {id:'mega',name:'Mega.nz',icon:'fa-database',fab:false,color:'#e11d48',isSearch:false,
+   placeholder:'https://mega.nz/file/XXXX#KEY',
+   sub:'Get direct download link from Mega.nz (include #key)',
+   chain:[
+     {ep:'/mega', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.result||!r.result.download_url)return{ok:false};
+       const d=r.result;
+       return{ok:true,title:d.filename||'Mega File',thumb:'',isVideo:false,src:'Mega.nz',
+         extra:d.size_formatted?[d.size_formatted]:[],
+         items:[{label:'Download File',meta:d.size_formatted||'',url:d.download_url,icon:'fa-file'}]};
+     }}
+   ]
+  },
+
+  /* ── Terabox ── */
+  {id:'terabox',name:'Terabox',icon:'fa-box-archive',fab:false,color:'#06b6d4',isSearch:false,
+   placeholder:'https://www.terabox.com/...',
+   sub:'Download files from Terabox',
+   chain:[
+     {ep:'/terabox', param:'q',  /* from source: const { q } = req.query */
+      parse:r=>{
+       if(!r.status||!r.response)return{ok:false};
+       const d=r.response;
+       const items=(d.files||[]).map(f=>({
+         label:f.fileName||'File',meta:f.fileSize||'',
+         url:f.directLink||f.downloadLink||f.dlink||'',icon:'fa-file'
+       })).filter(i=>i.url);
+       return{ok:items.length>0,title:d.title||'Terabox Files',thumb:d.files?.[0]?.thumb||'',isVideo:false,src:'Terabox',
+         extra:d.total_size?[d.total_size]:[],items};
+     }}
+   ]
+  },
+
+  /* ── Wallpapers ── */
+  {id:'wallpaper',name:'Wallpapers',icon:'fa-image',fab:false,color:'#a855f7',isSearch:true,
+   placeholder:'Search: "anime 4k", "nature sunset"...',
+   sub:'Search & download HD wallpapers',
+   chain:[
+     {ep:'/wallpaper2', param:'q',  /* from source: const { q } = req.query */
+      render:'wallpapers',
+      parse:r=>{
+       const items=r.data||r.result||[];
+       return{ok:r.status&&items.length>0,items,src:'Wallspic'};
+     }},
+     {ep:'/wallpaper', param:'q',  /* from source: const { q } = req.query */
+      render:'wallpapers',
+      parse:r=>{
+       const items=r.result||[];
+       return{ok:r.status&&items.length>0,items,src:'WallpaperWaves'};
+     }}
+   ]
+  },
+
+  /* ── Sinhala Songs ── */
+  {id:'sinsong',name:'Sinhala Songs',icon:'fa-music',fab:false,color:'#f59e0b',isSearch:true,
+   placeholder:'Song name in Sinhala or English…',
+   sub:'Search & download Sinhala songs',
+   chain:[
+     {ep:'/sinsong', param:'q',  /* from source: const { q } = req.query */
+      render:'songs',
+      parse:r=>{
+       return{ok:r.status&&(r.results||[]).length>0,items:r.results||[],src:'Sinhanada'};
+     }}
+   ]
+  },
+
+  /* ── Telegram Stickers ── */
+  {id:'telegrams',name:'TG Stickers',icon:'fa-telegram',fab:true,color:'#38bdf8',isSearch:false,
+   placeholder:'Pack name or https://t.me/addstickers/PackName',
+   sub:'Download Telegram sticker packs',
+   chain:[
+     {ep:'/telegrams', param:'q',  /* from source: const { q } = req.query */
+      render:'stickers',
+      parse:r=>{
+       const d=r.response||{};
+       return{ok:r.status&&(d.results||[]).length>0,
+         title:d.title||'Sticker Pack',sname:d.name||'',animated:d.is_animated,
+         items:d.results||[],src:'Telegrams'};
+     }}
+   ]
+  }
+];
+
+/* ══════════════════════════════════════
+   RENDER SIDEBAR + SECTIONS
+══════════════════════════════════════ */
+let activePlatform=PLATFORMS[0];
+
+function buildUI(){
+  const sidebar=document.getElementById('rsidebar');
+  const bar=document.getElementById('sbBar');
+  const wrap=document.getElementById('contentWrap');
+  sidebar.innerHTML='';sidebar.appendChild(bar);
+  wrap.innerHTML='';
+
+  PLATFORMS.forEach((p,i)=>{
+    /* Sidebar button */
+    const btn=document.createElement('button');
+    btn.className='sb-btn'+(p===activePlatform?' active':'');
+    btn.id=`sb-${p.id}`;
+    const ic=p.fab?`fab ${p.icon}`:`fas ${p.icon}`;
+    btn.innerHTML=`<i class="${ic}" style="color:${p.color}"></i><span class="sb-tooltip">${p.name}</span>`;
+    btn.onclick=()=>switchTo(p);
+    if(i>0&&PLATFORMS[i-1].fab!==p.fab){
+      const sep=document.createElement('div');sep.className='sb-sep';
+      sidebar.appendChild(sep);
+    }
+    sidebar.appendChild(btn);
+
+    /* Section */
+    const sec=document.createElement('div');
+    sec.className='section'+(p===activePlatform?' visible':'');
+    sec.id=`sec-${p.id}`;
+    sec.innerHTML=buildSection(p);
+    wrap.appendChild(sec);
+  });
+
+  moveBar();
+}
+
+function buildSection(p){
+  const ic=p.fab?`fab ${p.icon}`:`fas ${p.icon}`;
+  const srcSelect=buildSourceSelect(p);   /* always shown for every platform */
+  const btnTxt=p.isSearch?'Search':'Download';
+  const btnIco=p.isSearch?'fa-search':'fa-download';
+
+  return`
+  <div class="sec-hd">
+    <div class="sec-title">
+      <i class="${ic} sec-ico" style="color:${p.color}"></i>
+      <span>${p.name}</span> Downloader
+    </div>
+    <p class="sec-sub">${p.sub}</p>
+  </div>
+  <div class="dlbox">
+    ${srcSelect}
+    <div class="url-row">
+      <input class="url-inp" id="inp-${p.id}" placeholder="${x(p.placeholder)}" autocomplete="off" spellcheck="false"/>
+      <button class="go-btn" id="btn-${p.id}" onclick="start('${p.id}')">
+        <i class="fas ${btnIco}" id="bico-${p.id}"></i><span>${btnTxt}</span>
+      </button>
+    </div>
+    <div class="sbar" id="sbar-${p.id}">
+      <i class="fas fa-spinner spin"></i>
+      <span id="smsg-${p.id}">Trying…</span>
+      <div class="tdots" id="tdots-${p.id}"></div>
+    </div>
+    <div class="result-area" id="res-${p.id}"></div>
+  </div>
+  ${p===PLATFORMS[0]?infoCards():''}`;
+}
+
+function buildSourceSelect(p){
+  const apiOpts=p.chain.map((s,i)=>{
+    const lbl=s.label||s.ep||`API ${i+1}`;
+    return`<option value="${i}">API ${i+1} — ${lbl}</option>`;
+  }).join('');
+  /* "collect all" option only makes sense when there are >1 sources */
+  const collectAllOpt=p.chain.length>1
+    ?`<option value="collect">All APIs (collect all results)</option>`:'';
+  return`<div class="src-row">
+    <span class="src-label"><i class="fas fa-layer-group"></i> API Source:</span>
+    <select class="src-select" id="srcsel-${p.id}" onchange="updateSrcMode('${p.id}')">
+      <option value="fallback">All APIs (auto-fallback)</option>
+      ${collectAllOpt}
+      ${apiOpts}
+    </select>
+    <span class="src-mode mode-fallback" id="srcmode-${p.id}"><i class="fas fa-rotate"></i> Fallback</span>
+  </div>`;
+}
+
+function updateSrcMode(pid){
+  const sel=document.getElementById(`srcsel-${pid}`);
+  const badge=document.getElementById(`srcmode-${pid}`);
+  if(!sel||!badge)return;
+  const v=sel.value;
+  badge.className='src-mode '+(v==='fallback'?'mode-fallback':v==='collect'?'mode-all':'mode-single');
+  badge.innerHTML=v==='fallback'?'<i class="fas fa-rotate"></i> Fallback'
+    :v==='collect'?'<i class="fas fa-layer-group"></i> Collect All'
+    :`<i class="fas fa-bolt"></i> Single`;
+}
+
+function infoCards(){
+  return`<div class="info-grid">
+    <div class="icard"><div class="icard-ico"><i class="fas fa-rotate"></i></div><div class="icard-title">Auto Fallback</div><div class="icard-desc">If one source fails, we silently try the next until a result is found.</div></div>
+    <div class="icard"><div class="icard-ico"><i class="fas fa-shield-halved"></i></div><div class="icard-title">Safe &amp; Free</div><div class="icard-desc">No registration, no watermarks. Completely free forever.</div></div>
+    <div class="icard"><div class="icard-ico"><i class="fas fa-image"></i></div><div class="icard-title">Rich Results</div><div class="icard-desc">Thumbnails, titles, quality labels and file sizes before you download.</div></div>
+    <div class="icard"><div class="icard-ico"><i class="fas fa-bolt"></i></div><div class="icard-title">Multi-Platform</div><div class="icard-desc">YouTube, TikTok, Instagram, Facebook, Spotify, SoundCloud &amp; more.</div></div>
+  </div>`;
+}
+
+function switchTo(p){
+  activePlatform=p;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.getElementById(`sec-${p.id}`).classList.add('visible');
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`sb-${p.id}`).classList.add('active');
+  moveBar();
+  // bind enter key for new active input
+  const inp=document.getElementById(`inp-${p.id}`);
+  if(inp)inp.focus();
+}
+
+function moveBar(){
+  const activeBtn=document.getElementById(`sb-${activePlatform.id}`);
+  const bar=document.getElementById('sbBar');
+  if(activeBtn){
+    bar.style.top=(activeBtn.offsetTop)+'px';
+    bar.style.height=activeBtn.offsetHeight+'px';
+  }
+}
+
+/* enter key */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const inp=document.getElementById(`inp-${activePlatform.id}`);
+    if(document.activeElement===inp)start(activePlatform.id);
+  }
+});
+
+buildUI();
+
+/* ══════════════════════════════════════
+   START — FALLBACK CHAIN RUNNER
+══════════════════════════════════════ */
+async function start(pid){
+  const p=PLATFORMS.find(x=>x.id===pid);
+  const q=document.getElementById(`inp-${pid}`).value.trim();
+  if(!q){alert('Please paste a URL or enter a search query!');return;}
+  if(!await window.bxtCheckLimit()) return;
+
+  const area=document.getElementById(`res-${pid}`);
+  const sbar=document.getElementById(`sbar-${pid}`);
+  const dots=document.getElementById(`tdots-${pid}`);
+  const msg =document.getElementById(`smsg-${pid}`);
+  const btn =document.getElementById(`btn-${pid}`);
+
+  /* Determine which sources to use — universal for ALL platforms */
+  const sel=document.getElementById(`srcsel-${pid}`);
+  const selVal=sel?sel.value:'fallback';
+  let chain=p.chain;
+  if(selVal!=='fallback'&&selVal!=='collect'){
+    const idx=parseInt(selVal);
+    if(!isNaN(idx)&&p.chain[idx]) chain=[p.chain[idx]];
+  }
+
+  area.innerHTML='';
+  btn.disabled=true;
+  dots.innerHTML='';
+  chain.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='tdot'+(i===0?' active':'');
+    d.id=`td-${pid}-${i}`;
+    dots.appendChild(d);
+  });
+  sbar.className='sbar show';
+
+  if(selVal==='collect'){
+    await runAllSources(p,chain,q,area,sbar,dots,msg,btn,pid);
+  } else {
+    await runFallbackChain(p,chain,q,area,sbar,dots,msg,btn,pid);
+  }
+}
+
+/* Standard fallback: stop at first success */
+async function runFallbackChain(p,chain,q,area,sbar,dots,msg,btn,pid){
+  let lastErr='All sources failed. Please try again later.';
+  for(let i=0;i<chain.length;i++){
+    const step=chain[i];
+    chain.forEach((_,j)=>{
+      const d=document.getElementById(`td-${pid}-${j}`);
+      if(!d)return;
+      if(j<i)d.className='tdot done';
+      else if(j===i)d.className='tdot active';
+      else d.className='tdot';
+    });
+    msg.textContent=`Trying source ${i+1} of ${chain.length}…`;
+    try{
+      const raw=await fetchAPI(step,q);
+      const parsed=step.parse(raw);
+      if(parsed.ok){
+        chain.forEach((_,j)=>{const d=document.getElementById(`td-${pid}-${j}`);if(d)d.className='tdot done';});
+        sbar.className='sbar';btn.disabled=false;
+        area.innerHTML=renderResult(step,parsed);
+        return;
+      }
+      lastErr=raw.error||raw.msg||raw.message||`Source ${i+1} returned no usable data`;
+      const dot=document.getElementById(`td-${pid}-${i}`);if(dot)dot.className='tdot fail';
+    }catch(e){
+      lastErr=e.name==='TimeoutError'?`Source ${i+1} timed out`:e.message;
+      const dot=document.getElementById(`td-${pid}-${i}`);if(dot)dot.className='tdot fail';
+    }
+  }
+  sbar.className='sbar';btn.disabled=false;
+  area.innerHTML=errBox(lastErr);
+}
+
+/* Collect ALL sources (Facebook "All") */
+async function runAllSources(p,chain,q,area,sbar,dots,msg,btn,pid){
+  const results=[];
+  for(let i=0;i<chain.length;i++){
+    const step=chain[i];
+    const dot=document.getElementById(`td-${pid}-${i}`);
+    if(dot)dot.className='tdot active';
+    msg.textContent=`Fetching source ${i+1} of ${chain.length}…`;
+    try{
+      const raw=await fetchAPI(step,q);
+      const parsed=step.parse(raw);
+      if(parsed.ok){results.push({step,parsed});if(dot)dot.className='tdot done';}
+      else{if(dot)dot.className='tdot fail';}
+    }catch(e){if(dot)dot.className='tdot fail';}
+  }
+  sbar.className='sbar';btn.disabled=false;
+  if(!results.length){area.innerHTML=errBox('All sources failed. Please try again later.');return;}
+  const html=results.map(({step,parsed},i)=>`
+    <div class="src-badge"><i class="fas fa-server"></i><span>Source ${chain.indexOf(step)+1} — ${x(step.label||step.ep)}</span></div>
+    ${renderResult(step,parsed)}
+  `).join('');
+  area.innerHTML=`<div class="results-stack">${html}</div>`;
+}
+
+async function fetchAPI(step,q){
+  const param=step.param||'url'; /* use param defined per step */
+  const url=`${API}${step.ep}?${param}=${encodeURIComponent(q)}`;
+  const res=await fetch(url,{signal:AbortSignal.timeout(18000)});
+  return res.json();
+}
+
+/* ══════════════════════════════════════
+   RENDERERS
+══════════════════════════════════════ */
+function renderResult(step,d){
+  const rv=step.render;
+  if(rv==='wallpapers')return renderWallpapers(d);
+  if(rv==='songs')return renderSongs(d);
+  if(rv==='stickers')return renderStickers(d);
+  return renderGeneric(d);
+}
+
+function renderGeneric(d){
+  let thumbHTML='';
+  if(d.thumb){
+    const cls=d.isVideo?'wide':'sq';
+    const playBadge=d.isVideo?`<div class="play-badge"><i class="fas fa-play"></i></div>`:'';
+    thumbHTML=`<div class="mthumb-wrap">
+      <img class="mthumb ${cls}" src="${x(d.thumb)}" alt="thumb" onerror="this.parentElement.style.display='none'"/>
+      ${playBadge}
+    </div>`;
+  }
+  const chips=[];
+  if(d.src)chips.push(`<span class="chip"><i class="fas fa-server"></i>${x(d.src)}</span>`);
+  (d.extra||[]).forEach(e=>{if(e)chips.push(`<span class="chip">${x(String(e))}</span>`);});
+  const rows=d.items.map(it=>dlRow(it)).join('');
+  return `<div class="rcard">
+    <div class="mhd">
+      ${thumbHTML}
+      <div class="minfo">
+        <div class="mtitle">${x(d.title||'Media')}</div>
+        <div class="mmeta">${chips.join('')}</div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="dl-rows">${rows}</div>
+  </div>`;
+}
+
+function renderWallpapers(d){
+  const items=d.items||[];
+  if(!items.length)return errBox('No wallpapers found.');
+  const cards=items.map(w=>{
+    const img=w.thumb||w.thumbnail||w.image||w.full_hd||'';
+    const dl=w.full_hd||w.image||img;
+    return`<div class="witem">
+      <img src="${x(img)}" loading="lazy" onerror="this.parentElement.style.display='none'" alt="wallpaper"/>
+      <div class="wover"><a href="${x(dl)}" target="_blank" download><i class="fas fa-download"></i></a></div>
+    </div>`;
+  }).join('');
+  return`<div class="rcard">
+    <div class="slabel"><i class="fas fa-images"></i>${items.length} wallpapers found — hover to download</div>
+    <div class="wgrid">${cards}</div>
+  </div>`;
+}
+
+function renderSongs(d){
+  const songs=d.items||[];
+  if(!songs.length)return errBox('No songs found.');
+  const rows=songs.map(s=>`
+    <div class="sitem">
+      ${s.image?`<img class="sthumb" src="${x(s.image)}" onerror="this.style.display='none'" alt="thumb"/>`:''}
+      <div class="sinfo">
+        <div class="stitle">${x(s.title||'Song')}</div>
+        <div class="smeta">${s.size?`<i class="fas fa-weight-hanging"></i> ${x(s.size)}`:'Sinhala Song'}</div>
+      </div>
+      ${s.download&&s.download!=='Failed'
+        ?`<a href="${x(s.download)}" target="_blank" download class="dl-link"><i class="fas fa-download"></i>Download</a>`
+        :`<span class="sfail"><i class="fas fa-xmark"></i> Failed</span>`}
+    </div>`).join('');
+  return`<div class="rcard">
+    <div class="slabel"><i class="fas fa-music"></i>${songs.length} songs found</div>
+    <div class="slist">${rows}</div>
+  </div>`;
+}
+
+function renderStickers(d){
+  const urls=d.items||[];
+  if(!urls.length)return errBox('No stickers found in this pack.');
+  const cells=urls.map(u=>`
+    <div class="stcell"><img src="${x(u)}" loading="lazy" onerror="this.style.display='none'" alt="sticker"/></div>`).join('');
+  return`<div class="rcard">
+    <div class="mhd">
+      <div class="minfo">
+        <div class="mtitle">${x(d.title||'Sticker Pack')}</div>
+        <div class="mmeta">
+          ${d.sname?`<span class="chip"><i class="fab fa-telegram"></i>${x(d.sname)}</span>`:''}
+          <span class="chip">${urls.length} stickers</span>
+          ${d.animated?`<span class="chip"><i class="fas fa-bolt"></i>Animated</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="slabel"><i class="fas fa-th"></i>Sticker Preview</div>
+    <div class="stgrid">${cells}</div>
+    <div style="padding:0 18px 18px">
+      <a href="${x(urls[0])}" download target="_blank" class="dl-link" style="width:100%;justify-content:center">
+        <i class="fas fa-download"></i>Download Sample Sticker
+      </a>
+    </div>
+  </div>`;
+}
+
+function dlRow(it){
+  return`<div class="dl-row">
+    <div class="dl-row-l">
+      <div class="dl-ico"><i class="fas ${it.icon||'fa-download'}"></i></div>
+      <div>
+        <div class="dl-lbl">${x(it.label)}</div>
+        ${it.meta?`<div class="dl-meta-t">${x(it.meta)}</div>`:''}
+      </div>
+    </div>
+    <a href="${x(it.url)}" target="_blank" download class="dl-link"><i class="fas fa-download"></i>Download</a>
+  </div>`;
+}
+
+function errBox(msg){return`<div class="err-box"><i class="fas fa-triangle-exclamation"></i><span>${x(msg)}</span></div>`;}
+function x(s){if(typeof s!=='string')return s||'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* recalc bar on resize */
+window.addEventListener('resize',moveBar);
+</script>
+<script src="nav.js"></script>
+</body>
+</html>
