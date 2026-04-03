@@ -106,6 +106,9 @@ app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 // Root route
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
 
+// Redirect /index.html to home
+app.get('/index.html', (req, res) => res.redirect(301, '/'));
+
 // ── LOAD TOOLS MODULE ─────────────────────────────────────────────────────────
 function loadToolsModule() {
   const toolsPath = path.join(__dirname, 'public', 'tools.js');
