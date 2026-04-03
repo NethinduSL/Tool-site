@@ -1,532 +1,441 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-theme="dark">
- 
 <head>
   <meta charset="utf-8">
-  <title>Language Translator</title>
+  <title>Language Translator \u2014 Bit X Tools</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
- 
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
   <style>
+    /* \u2500\u2500 Bit X Tools Design Tokens \u2500\u2500 */
     :root {
-      --bg-primary: #0F0F23;
-      --bg-secondary: #1A1B2E;
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --text-primary: #FFFFFF;
-      --text-secondary: #A0A0A0;
-      --accent-start: #7C3AED;
-      --accent-end: #8B5CF6;
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      --backdrop-blur: blur(20px);
-    }
- 
-    [data-theme="light"] {
-      --bg-primary: #F8FAFC;
-      --bg-secondary: #FFFFFF;
-      --glass-bg: rgba(0, 0, 0, 0.05);
-      --glass-border: rgba(0, 0, 0, 0.1);
-      --text-primary: #1E293B;
-      --text-secondary: #64748B;
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
- 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
- 
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      color: var(--text-primary);
-      transition: background 0.3s ease, color 0.3s ease;
-    }
- 
-    .top-bar {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--glass-bg);
-      backdrop-filter: var(--backdrop-blur);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 10px 20px;
-      box-shadow: var(--shadow);
-    }
- 
-    .top-bar h1 {
-      font-size: 22px;
-      font-weight: 600;
-      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin: 0;
-    }
- 
-    .back-btn {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 16px;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 8px;
-      transition: color 0.2s ease;
-    }
- 
-    .back-btn:hover { color: var(--accent-start); }
- 
-    .theme-corner {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-    }
- 
-    .theme-toggle {
-      position: relative;
-      width: 60px;
-      height: 32px;
-      background: var(--glass-bg);
-      border: 2px solid var(--glass-border);
-      border-radius: 28px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: var(--backdrop-blur);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
- 
-    .theme-toggle .thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 24px;
-      height: 24px;
-      background: var(--text-primary);
-      border-radius: 50%;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
- 
-    .theme-toggle[data-theme="dark"] {
-      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-      border-color: var(--accent-end);
-    }
- 
-    .theme-toggle[data-theme="dark"] .thumb {
-      transform: translateX(28px);
-      background: white;
-    }
- 
-    .theme-toggle:hover { transform: scale(1.05); }
- 
-    main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding-top: 100px;
-      padding-bottom: 60px;
-    }
- 
-    .footer {
-      padding: 16px 0;
-      text-align: center;
-      width: 100%;
-    }
- 
-    .footer p {
-      color: var(--text-secondary);
-      font-size: 14px;
+      --bg:   #04040d;
+      --s0:   #07071a;
+      --s1:   #0a0a20;
+      --s2:   #0e0e28;
+      --s3:   #131330;
+      --bd:   rgba(120,110,220,0.08);
+      --bd2:  rgba(120,110,220,0.18);
+      --tx:   #e8ecff;
+      --tx2:  #b0b8e0;
+      --tx3:  #ffffff;
+      --g1:   #4f8ef7;
+      --g2:   #7c5cfc;
+      --g3:   #a855f7;
+      --g4:   #06b6d4;
+      --grad: linear-gradient(135deg,#4f8ef7,#7c5cfc,#a855f7);
     }
 
-    .footer a {
-      color: var(--text-primary);
+    [data-theme="light"] {
+      --bg:   #f0f0ff;
+      --s0:   #e8e8f8;
+      --s1:   #dcdcf5;
+      --s2:   #d0d0ee;
+      --s3:   #c4c4e8;
+      --bd:   rgba(80,60,180,0.10);
+      --bd2:  rgba(80,60,180,0.22);
+      --tx:   #1a1a3a;
+      --tx2:  #4a4a7a;
+      --tx3:  #0a0a20;
     }
- 
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
+      color: var(--tx);
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+      display: flex;
+      flex-direction: column;
+      transition: background .3s, color .3s;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* \u2500\u2500 Noise overlay \u2500\u2500 */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.032;
+      mix-blend-mode: overlay;
+    }
+
+    /* \u2500\u2500 Orbs \u2500\u2500 */
+    .orb { position:fixed; border-radius:50%; pointer-events:none; filter:blur(100px); z-index:0; }
+    .orb1 { width:600px; height:600px; background:radial-gradient(circle,rgba(79,142,247,0.10) 0%,transparent 70%); top:-150px; right:-100px; }
+    .orb2 { width:500px; height:500px; background:radial-gradient(circle,rgba(168,85,247,0.08) 0%,transparent 70%); bottom:-100px; left:-100px; }
+
+    /* \u2500\u2500 Grid lines \u2500\u2500 */
+    .grid-lines {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124,92,252,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,252,0.03) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 100%);
+    }
+
+    /* \u2500\u2500 Custom Cursor \u2500\u2500 */
+    #cursor {
+      position:fixed; width:10px; height:10px; background:#7c5cfc; border-radius:50%;
+      pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen;
+    }
+    #cursor-ring {
+      position:fixed; width:36px; height:36px; border:1.5px solid rgba(124,92,252,.5); border-radius:50%;
+      pointer-events:none; z-index:9998; transform:translate(-50%,-50%);
+      transition:width .2s,height .2s; mix-blend-mode:screen;
+    }
+
+    /* \u2500\u2500 Nav \u2500\u2500 */
+    nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      padding: 18px 40px;
+      display: flex; align-items:center; justify-content:space-between;
+      background: rgba(4,4,13,0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--bd2);
+    }
+    [data-theme="light"] nav { background: rgba(240,240,255,0.88); }
+
+    .nav-logo { display:flex; align-items:center; gap:10px; }
+    .logo-icon {
+      width:32px; height:32px; border-radius:9px;
+      background: var(--grad);
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; color:#fff;
+    }
+    .nav-logo span {
+      font-size:15px; font-weight:800;
+      background: var(--grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .nav-right { display:flex; align-items:center; gap:12px; }
+    .nav-back {
+      display:flex; align-items:center; gap:7px;
+      color:var(--tx2); font-size:13px; font-weight:600;
+      padding:8px 16px; border-radius:10px; border:1px solid var(--bd2);
+      transition:all .2s; cursor:pointer; background:none;
+      font-family:'Sora',sans-serif;
+    }
+    .nav-back:hover { color:var(--tx); background:var(--s1); }
+
+    /* \u2500\u2500 Theme Toggle \u2500\u2500 */
+    .theme-toggle {
+      position:relative; width:56px; height:30px;
+      background:var(--bd2); border:1.5px solid var(--bd2);
+      border-radius:28px; cursor:pointer;
+      transition:all .3s cubic-bezier(.4,0,.2,1);
+      backdrop-filter:blur(20px);
+    }
+    .theme-toggle .thumb {
+      position:absolute; top:3px; left:3px;
+      width:22px; height:22px; background:var(--tx);
+      border-radius:50%; transition:all .3s cubic-bezier(.4,0,.2,1);
+      box-shadow:0 2px 6px rgba(0,0,0,.3);
+    }
+    .theme-toggle[data-theme="dark"] {
+      background: var(--grad); border-color:var(--g3);
+    }
+    .theme-toggle[data-theme="dark"] .thumb { transform:translateX(26px); background:#fff; }
+    .theme-toggle:hover { transform:scale(1.05); }
+
+    /* \u2500\u2500 Page Body \u2500\u2500 */
+    main {
+      position:relative; z-index:2;
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding: 110px 24px 60px;
+    }
+
+    /* \u2500\u2500 Page title area \u2500\u2500 */
+    .page-head {
+      position:relative; z-index:2;
+      max-width:760px; width:100%; margin:0 auto;
+      padding:110px 24px 0;
+    }
+    .page-title {
+      font-family:'Outfit',sans-serif;
+      font-size:clamp(28px,4vw,48px);
+      font-weight:900; letter-spacing:-.02em;
+      margin-bottom:6px;
+    }
+    .page-title span {
+      background:var(--grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .page-sub { color:var(--tx2); font-size:14px; line-height:1.7; margin-bottom:24px; }
+
+    /* \u2500\u2500 Main Card \u2500\u2500 */
     .container {
-      max-width: 720px;
+      max-width: 760px;
       width: 100%;
-      padding: 40px;
-      background: var(--glass-bg);
-      backdrop-filter: var(--backdrop-blur);
-      border: 1px solid var(--glass-border);
+      padding: 32px;
+      background: rgba(10,10,28,.75);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--bd2);
       border-radius: 24px;
-      box-shadow: var(--shadow);
-      transition: all 0.3s ease;
+      box-shadow: 0 8px 48px rgba(0,0,0,.45);
+      position:relative; overflow:hidden;
     }
- 
+    [data-theme="light"] .container {
+      background: rgba(220,220,240,0.55);
+    }
+    .container::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(124,92,252,.4),transparent);
+    }
+
+    /* \u2500\u2500 Textarea wrapper \u2500\u2500 */
     .wrapper {
-      border-radius: 20px;
+      border-radius: 16px;
       overflow: hidden;
-      background: var(--glass-bg);
-      backdrop-filter: var(--backdrop-blur);
-      border: 1px solid var(--glass-border);
-      margin-bottom: 24px;
+      background: rgba(7,7,26,.6);
+      border: 1px solid var(--bd2);
+      margin-bottom: 20px;
     }
- 
+    [data-theme="light"] .wrapper { background: rgba(200,200,230,0.45); }
+
     .text-input { display: flex; }
- 
-    .text-input .to-text { border-left: 1px solid var(--glass-border); }
- 
+    .text-input .to-text { border-left: 1px solid var(--bd2); }
+
     .text-input textarea {
       flex: 1;
-      height: 280px;
+      height: 240px;
       border: none;
       outline: none;
       resize: none;
       background: transparent;
-      font-size: 18px;
-      padding: 24px;
-      color: var(--text-primary);
-      font-family: inherit;
+      font-size: 16px;
+      padding: 22px;
+      color: var(--tx);
+      font-family: 'Sora', sans-serif;
+      line-height: 1.65;
     }
- 
-    .text-input textarea::placeholder { color: var(--text-secondary); }
-    .text-input textarea:focus::placeholder { opacity: 0.5; }
- 
+    .text-input textarea::placeholder { color: var(--tx2); opacity:.65; }
+    .text-input textarea:focus::placeholder { opacity:.35; }
+
+    /* \u2500\u2500 Controls bar \u2500\u2500 */
     .controls {
       list-style: none;
-      padding: 20px 24px;
+      padding: 16px 22px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-top: 1px solid var(--glass-border);
-      background: var(--glass-bg);
+      border-top: 1px solid var(--bd2);
+      background: rgba(7,7,26,.45);
+      gap: 8px;
     }
- 
-    .row { display: flex; align-items: center; flex: 1; }
- 
-    .from { border-right: 1px solid var(--glass-border); padding-right: 20px; }
- 
-    .to {
-      border-left: 1px solid var(--glass-border);
-      padding-left: 20px;
-      justify-content: flex-end;
-    }
- 
-    .icons { display: flex; gap: 8px; }
- 
+    [data-theme="light"] .controls { background: rgba(190,190,220,0.3); }
+
+    .row { display:flex; align-items:center; flex:1; }
+    .from { border-right:1px solid var(--bd2); padding-right:16px; }
+    .to   { border-left:1px solid var(--bd2);  padding-left:16px; justify-content:flex-end; }
+
+    .icons { display:flex; gap:6px; }
     .icons i {
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 12px;
-      backdrop-filter: var(--backdrop-blur);
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      transition: all 0.2s ease;
+      width:40px; height:40px;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--tx2); font-size:14px; cursor:pointer;
+      border-radius:10px;
+      background: rgba(124,92,252,.08);
+      border:1px solid var(--bd2);
+      transition:all .2s;
     }
- 
     .icons i:hover {
-      background: var(--accent-start);
-      color: white;
-      transform: translateY(-2px);
+      color:var(--tx3);
+      background: rgba(124,92,252,.22);
+      border-color:rgba(124,92,252,.4);
+      box-shadow:0 0 12px rgba(124,92,252,.25);
     }
- 
-    select {
-      background: none;
-      border: none;
-      outline: none;
-      font-size: 18px;
-      color: var(--text-primary);
-      padding: 0 12px;
-      cursor: pointer;
-      flex: 1;
-      text-align: center;
-    }
- 
-    select option { background: var(--bg-secondary); color: var(--text-primary); }
-    [data-theme="light"] select option { background: #FFFFFF; }
- 
+
     .exchange {
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      font-size: 18px;
+      display:flex; align-items:center; justify-content:center;
+      width:44px; height:44px;
+      border-radius:50%;
+      background: var(--grad);
+      cursor:pointer;
+      box-shadow:0 0 16px rgba(124,92,252,.3);
+      transition:all .25s;
+      flex-shrink:0;
+    }
+    .exchange i { color:#fff; font-size:14px; }
+    .exchange:hover { box-shadow:0 0 28px rgba(124,92,252,.55); transform:scale(1.08) rotate(15deg); }
+
+    select {
+      background: rgba(10,10,28,.7);
+      border: 1px solid var(--bd2);
+      color: var(--tx);
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 10px;
+      outline: none;
       cursor: pointer;
-      border-radius: 12px;
-      backdrop-filter: var(--backdrop-blur);
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      transition: all 0.2s ease;
+      max-width: 160px;
+      transition: border-color .2s;
     }
- 
-    .exchange:hover {
-      background: var(--accent-start);
-      color: white;
-      transform: rotate(90deg);
-    }
- 
+    [data-theme="light"] select { background: rgba(220,220,250,.8); }
+    select:focus { border-color: rgba(124,92,252,.5); }
+    select option { background: #0e0e28; color: var(--tx); }
+
+    /* \u2500\u2500 Translate Button \u2500\u2500 */
     .translate-btn {
       width: 100%;
-      padding: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--grad);
+      color: #fff;
       border: none;
-      color: white;
-      font-size: 18px;
-      font-weight: 500;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing:.02em;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+      transition: all .25s;
+      box-shadow: 0 4px 20px rgba(124,92,252,.3);
     }
- 
     .translate-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 12px 35px rgba(124, 58, 237, 0.5);
+      box-shadow: 0 12px 35px rgba(124,58,237,.5);
     }
- 
     .translate-btn:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none;
+      opacity:.6; cursor:not-allowed; transform:none;
     }
- 
-    .text-input textarea::-webkit-scrollbar { width: 6px; }
-    .text-input textarea::-webkit-scrollbar-track { background: var(--glass-bg); border-radius: 3px; }
-    .text-input textarea::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 3px; }
-    .text-input textarea::-webkit-scrollbar-thumb:hover { background: var(--text-primary); }
- 
-    @media (max-width: 768px) {
-      .top-bar, .theme-corner { position: absolute; }
-      main { padding-top: 90px; }
-      .container { padding: 32px 24px; border-radius: 20px; }
-      .text-input { flex-direction: column; }
-      .text-input .to-text { border-left: none; border-top: 1px solid var(--glass-border); }
-      .text-input textarea { height: 220px; }
-      .controls { flex-direction: column; gap: 16px; padding: 24px; }
-      .row.from, .row.to { border: none !important; padding: 0 !important; width: 100%; justify-content: space-between; }
-      .icons { order: 2; }
-      select { order: 1; flex: none; padding: 0; }
+
+    /* \u2500\u2500 Footer \u2500\u2500 */
+    footer {
+      position:relative; z-index:2;
+      padding:18px 0; text-align:center;
     }
- 
-    @media (max-width: 480px) {
-      .top-bar h1 { font-size: 18px; }
-      .container { padding: 24px 16px; }
-      .text-input textarea { height: 200px; padding: 20px; font-size: 16px; }
+    footer p { color:var(--tx2); font-size:13px; }
+    footer a { color:var(--tx); font-weight:600; }
+    footer a:hover { color:var(--g2); }
+
+    /* \u2500\u2500 Scrollbar \u2500\u2500 */
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-thumb { background:rgba(124,92,252,.3); border-radius:4px; }
+    .text-input textarea::-webkit-scrollbar { width:4px; }
+    .text-input textarea::-webkit-scrollbar-thumb { background:rgba(124,92,252,.25); border-radius:4px; }
+
+    /* \u2500\u2500 Responsive \u2500\u2500 */
+    @media (max-width:768px) {
+      nav { padding:14px 20px; }
+      .page-head { padding:90px 16px 0; }
+      main { padding:20px 16px 40px; }
+      .container { padding:22px 16px; }
+      .text-input { flex-direction:column; }
+      .text-input .to-text { border-left:none; border-top:1px solid var(--bd2); }
+      .text-input textarea { height:200px; }
+      .controls { flex-direction:column; gap:14px; padding:18px; }
+      .row.from,.row.to { border:none !important; padding:0 !important; width:100%; justify-content:space-between; }
+      select { max-width:140px; }
+    }
+
+    @media (max-width:480px) {
+      .page-title { font-size:26px; }
+      .text-input textarea { height:180px; padding:16px; font-size:15px; }
     }
   </style>
 </head>
- 
+
 <body>
- 
-  <div class="top-bar">
-    <button class="back-btn" onclick="window.location.href='https://bit-x-tools.vercel.app/index.html'" title="Back">
-      <i class="fas fa-arrow-left"></i>
-    </button>
-    <h1>Language Translator</h1>
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Background elements -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="grid-lines"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+    <span>Bit X Tools</span>
   </div>
- 
-  <div class="theme-corner">
-    <button class="theme-toggle" id="themeToggle" title="Toggle theme" data-theme="dark">
+  <div class="nav-right">
+    <button class="nav-back" onclick="window.location.href='https://bit-x-tools.vercel.app/index.html'">
+      <i class="fas fa-arrow-left"></i> Back
+    </button>
+    <button class="theme-toggle" id="themeToggle" data-theme="dark" title="Toggle theme">
       <span class="thumb"></span>
     </button>
   </div>
- 
-  <main>
-    <div class="container">
-      <div class="wrapper">
-        <div class="text-input">
-          <textarea spellcheck="false" class="from-text" placeholder="Enter text"></textarea>
-          <textarea spellcheck="false" readonly disabled class="to-text" placeholder="Translation"></textarea>
-        </div>
-        <ul class="controls">
-          <li class="row from">
-            <div class="icons">
-              <i data-lang="from" class="fas fa-volume-up"></i>
-              <i data-lang="from" class="fas fa-copy"></i>
-            </div>
-            <select></select>
-          </li>
-          <li class="exchange"><i class="fas fa-exchange-alt"></i></li>
-          <li class="row to">
-            <select></select>
-            <div class="icons">
-              <i data-lang="to" class="fas fa-volume-up"></i>
-              <i data-lang="to" class="fas fa-copy"></i>
-            </div>
-          </li>
-        </ul>
+</nav>
+
+<!-- Page heading -->
+<div class="page-head">
+  <div class="page-title"><span>Language</span> Translator</div>
+  <p class="page-sub">Translate text between 80+ languages instantly with text-to-speech support.</p>
+</div>
+
+<!-- Main content -->
+<main>
+  <div class="container">
+    <div class="wrapper">
+      <div class="text-input">
+        <textarea spellcheck="false" class="from-text" placeholder="Enter text to translate\u2026"></textarea>
+        <textarea spellcheck="false" readonly disabled class="to-text" placeholder="Translation appears here\u2026"></textarea>
       </div>
-      <button class="translate-btn">Translate Text</button>
+      <ul class="controls">
+        <li class="row from">
+          <div class="icons">
+            <i data-lang="from" class="fas fa-volume-up" title="Listen"></i>
+            <i data-lang="from" class="fas fa-copy" title="Copy"></i>
+          </div>
+          <select></select>
+        </li>
+        <li class="exchange"><i class="fas fa-exchange-alt"></i></li>
+        <li class="row to">
+          <select></select>
+          <div class="icons">
+            <i data-lang="to" class="fas fa-volume-up" title="Listen"></i>
+            <i data-lang="to" class="fas fa-copy" title="Copy"></i>
+          </div>
+        </li>
+      </ul>
     </div>
-  </main>
- 
-  <footer class="footer">
-    <p>Made with ❤ by Jithula Bhasitha for <a href="https://bit-x-tools.vercel.app/">Bit X Tools</a></p>
-  </footer>
- 
-  <script>
-    // ── Countries Data ──────────────────────────────────────────────
-    const countries = {
-      "am-ET":"Amharic",   "ar-SA":"Arabic",      "be-BY":"Bielarus",
-      "bem-ZM":"Bemba",    "bi-VU":"Bislama",     "bjs-BB":"Bajan",
-      "bn-IN":"Bengali",   "bo-CN":"Tibetan",     "br-FR":"Breton",
-      "bs-BA":"Bosnian",   "ca-ES":"Catalan",     "cop-EG":"Coptic",
-      "cs-CZ":"Czech",     "cy-GB":"Welsh",       "da-DK":"Danish",
-      "dz-BT":"Dzongkha",  "de-DE":"German",      "dv-MV":"Maldivian",
-      "el-GR":"Greek",     "en-GB":"English",     "es-ES":"Spanish",
-      "et-EE":"Estonian",  "eu-ES":"Basque",      "fa-IR":"Persian",
-      "fi-FI":"Finnish",   "fn-FNG":"Fanagalo",   "fo-FO":"Faroese",
-      "fr-FR":"French",    "gl-ES":"Galician",    "gu-IN":"Gujarati",
-      "ha-NE":"Hausa",     "he-IL":"Hebrew",      "hi-IN":"Hindi",
-      "hr-HR":"Croatian",  "hu-HU":"Hungarian",   "id-ID":"Indonesian",
-      "is-IS":"Icelandic", "it-IT":"Italian",     "ja-JP":"Japanese",
-      "kk-KZ":"Kazakh",    "km-KM":"Khmer",       "kn-IN":"Kannada",
-      "ko-KR":"Korean",    "ku-TR":"Kurdish",     "ky-KG":"Kyrgyz",
-      "la-VA":"Latin",     "lo-LA":"Lao",         "lv-LV":"Latvian",
-      "men-SL":"Mende",    "mg-MG":"Malagasy",    "mi-NZ":"Maori",
-      "ms-MY":"Malay",     "mt-MT":"Maltese",     "my-MM":"Burmese",
-      "ne-NP":"Nepali",    "niu-NU":"Niuean",     "nl-NL":"Dutch",
-      "no-NO":"Norwegian", "ny-MW":"Nyanja",      "ur-PK":"Pakistani",
-      "pau-PW":"Palauan",  "pa-IN":"Panjabi",     "ps-PK":"Pashto",
-      "pis-SB":"Pijin",    "pl-PL":"Polish",      "pt-PT":"Portuguese",
-      "rn-BI":"Kirundi",   "ro-RO":"Romanian",    "ru-RU":"Russian",
-      "sg-CF":"Sango",     "si-LK":"Sinhala",     "sk-SK":"Slovak",
-      "sm-WS":"Samoan",    "sn-ZW":"Shona",       "so-SO":"Somali",
-      "sq-AL":"Albanian",  "sr-RS":"Serbian",     "sv-SE":"Swedish",
-      "sw-SZ":"Swahili",   "ta-LK":"Tamil",       "te-IN":"Telugu",
-      "tet-TL":"Tetum",    "tg-TJ":"Tajik",       "th-TH":"Thai",
-      "ti-TI":"Tigrinya",  "tk-TM":"Turkmen",     "tl-PH":"Tagalog",
-      "tn-BW":"Tswana",    "to-TO":"Tongan",      "tr-TR":"Turkish",
-      "uk-UA":"Ukrainian", "uz-UZ":"Uzbek",       "vi-VN":"Vietnamese",
-      "wo-SN":"Wolof",     "xh-ZA":"Xhosa",       "yi-YD":"Yiddish",
-      "zu-ZA":"Zulu"
-    };
- 
-    // ── DOM References ──────────────────────────────────────────────
-    const fromText     = document.querySelector(".from-text"),
-          toText       = document.querySelector(".to-text"),
-          exchangeIcon = document.querySelector(".exchange"),
-          selectTag    = document.querySelectorAll("select"),
-          icons        = document.querySelectorAll(".row i"),
-          translateBtn = document.querySelector(".translate-btn");
- 
-    // ── Populate Dropdowns ──────────────────────────────────────────
-    selectTag.forEach((tag, id) => {
-      for (let code in countries) {
-        const selected = id === 0
-          ? (code === "en-GB" ? "selected" : "")
-          : (code === "si-LK" ? "selected" : "");
-        tag.insertAdjacentHTML("beforeend",
-          `<option ${selected} value="${code}">${countries[code]}</option>`
-        );
-      }
-    });
- 
-    // ── Swap Languages & Text ───────────────────────────────────────
-    exchangeIcon.addEventListener("click", () => {
-      const tempText        = fromText.value;
-      const tempLang        = selectTag[0].value;
-      fromText.value        = toText.value;
-      toText.value          = tempText;
-      selectTag[0].value    = selectTag[1].value;
-      selectTag[1].value    = tempLang;
-    });
- 
-    // ── Clear Translation on Empty Input ────────────────────────────
-    fromText.addEventListener("keyup", () => {
-      if (!fromText.value) toText.value = "";
-    });
- 
-    // ── Translate ───────────────────────────────────────────────────
-    translateBtn.addEventListener("click", () => {
-      const text          = fromText.value.trim();
-      const translateFrom = selectTag[0].value;
-      const translateTo   = selectTag[1].value;
-      if (!text) return;
- 
-      toText.setAttribute("placeholder", "Translating...");
-      translateBtn.disabled    = true;
-      translateBtn.textContent = "Translating...";
- 
-      fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${translateFrom}|${translateTo}`)
-        .then(res => { if (!res.ok) throw new Error("Network error"); return res.json(); })
-        .then(data => {
-          if (data.responseStatus !== 200) {
-            toText.value = "";
-            toText.setAttribute("placeholder", "Translation failed. Try again.");
-            return;
-          }
-          toText.value = data.responseData.translatedText;
-          data.matches.forEach(m => { if (m.id === 0) toText.value = m.translation; });
-          toText.setAttribute("placeholder", "Translation");
-        })
-        .catch(() => {
-          toText.value = "";
-          toText.setAttribute("placeholder", "Error. Check your connection.");
-        })
-        .finally(() => {
-          translateBtn.disabled    = false;
-          translateBtn.textContent = "Translate Text";
-        });
-    });
- 
-    // ── Theme Toggle ────────────────────────────────────────────────
-    const themeToggle = document.getElementById("themeToggle");
-    const html        = document.documentElement;
- 
-    function setTheme(theme) {
-      html.setAttribute("data-theme", theme);
-      themeToggle.setAttribute("data-theme", theme);
-      localStorage.setItem("theme", theme);
-    }
- 
-    themeToggle.addEventListener("click", () => {
-      setTheme(html.getAttribute("data-theme") === "dark" ? "light" : "dark");
-    });
- 
-    setTheme(localStorage.getItem("theme") || "dark");
- 
-    // ── Copy & Text-to-Speech Icons ─────────────────────────────────
-    icons.forEach(icon => {
-      icon.addEventListener("click", ({ target }) => {
-        if (!fromText.value || !toText.value) return;
-        const lang = target.dataset.lang;
- 
-        if (target.classList.contains("fa-copy")) {
-          const text = lang === "from" ? fromText.value : toText.value;
-          navigator.clipboard.writeText(text).catch(() => {
-            const tmp = document.createElement("textarea");
-            tmp.value = text;
-            document.body.appendChild(tmp);
-            tmp.select();
-            document.execCommand("copy");
-            document.body.removeChild(tmp);
-          });
-        } else if (target.classList.contains("fa-volume-up")) {
-          const utter = new SpeechSynthesisUtterance(
-            lang === "from" ? fromText.value : toText.value
-          );
-          utter.lang = lang === "from" ? selectTag[0].value : selectTag[1].value;
-          speechSynthesis.cancel();
-          speechSynthesis.speak(utter);
-        }
-      });
-    });
-  </script>
- 
-</body>
-</html>
+    <button class="translate-btn">Translate Text</button>
+  </div>
+</main>
+
+<footer>
+  <p>Made with \u2764 by Jithula Bhasitha for <a href="https://bit-x-tools.vercel.app/">Bit X Tools</a></p>
+</footer>
+
+<script>
+  /* \u2500\u2500 Custom Cursor \u2500\u2500 */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx+'px'; cursor.style.top = my+'px';
+  });
+  (function animRing(){
+    rx += (mx-rx)*.12; ry += (my-ry)*.12;
+    ring.style.left = rx+'px'; ring.style.top = ry+'px';
+    requestAnimationFrame(animRing);
+  })();
+
+  /* \u2500\u2500 Countries \u2500\u2500 */
+  const countries = {
+    "am-ET":"Amharic","ar-SA":"Arabic","be-BY":"Bielarus","bem-ZM":"Bemba","bi-VU":"Bislama",
+    "bjs-BB":"Bajan","bn-IN":"Bengali","bo-CN":"Tibetan","br-FR":"Breton","bs-BA":"Bosnian",
+    "ca-ES":"Catalan","cop-EG":"Coptic","cs-CZ":"Czech","cy-GB":"Welsh","da-DK":"Danish",
+    "dz-BT":"Dzongkha","de-DE":"German","dv-MV":"Maldivian","el-GR":"Greek","en-GB":"English",
+    "es-ES":"Spanish","et-EE":"Estonian","eu-ES":"Basque","fa-IR":"Persian","fi-FI":"Finnish",
+    "fn-FNG":"Fanagalo","fo-FO":"Faroese","fr-FR":"French","gl-ES":"Galician","gu-IN":"Gujarati",
+    "ha-NE":"Hausa","he-IL":"Hebrew","hi-
