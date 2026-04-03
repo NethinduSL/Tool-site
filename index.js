@@ -60,7 +60,7 @@ async function recordVisit() {
 }
 
 app.use(async (req, res, next) => {
-  if (req.path === '/' || req.path === '/home.html') { try { await recordVisit(); } catch {} }
+  if (req.path === '/' || req.path === '/index.html') { try { await recordVisit(); } catch {} }
   next();
 });
 
