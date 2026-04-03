@@ -353,19 +353,7 @@ const TOOLS = [
     section: 'Anime',
     usage: 'Search title → Episodes'
   },
-  {
-    id: 'search-gif',
-    name: 'GIF Search',
-    cat: 'Search',
-    icon: 'gif',
-    fab: false,
-    color: '#fb923c',
-    desc: 'Search and download GIFs from Giphy and Tenor.',
-    link: 'search.html?type=gif',
-    badge: 'new',
-    section: 'Media',
-    usage: 'Search term → GIF results'
-  },
+
 
   // ── MOVIES ─────────────────────────────────────────────────────────────────
   {
@@ -432,20 +420,7 @@ const TOOLS = [
     section: 'Utility',
     usage: 'Paste URL → Short link'
   },
-  {
-    id: 'tool-qr',
-    name: 'QR Generator',
-    cat: 'Tools',
-    icon: 'qrcode',
-    fab: false,
-    color: '#4ade80',
-    desc: 'Generate QR codes from any text, URL or data instantly.',
-    link: 'tools.html?type=qr',
-    badge: 'new',
-    section: 'Utility',
-    usage: 'Enter data → QR code'
-  },
-  {
+{
     id: 'tool-telegram-stickers',
     name: 'Telegram Stickers',
     cat: 'Tools',
