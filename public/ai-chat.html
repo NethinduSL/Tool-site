@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script id="tool-data" type="application/json">
+{"name":"AI Chat (AskAI)","description":"Chat with GPT-4o powered AI. Ask anything and get instant smart answers.","section":"AI","icon":"robot","iconType":"fas","color":"#4f8ef7","badge":"hot","link":"ai-chat.html"}
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Chat — Bit X Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ══════════════════════════════════════
+   THEME VARIABLES
+══════════════════════════════════════ */
+:root{
+  --bg:#04040d;--s0:#07071a;--s1:#0a0a20;--s2:#0e0e28;--s3:#131330;
+  --bd:rgba(120,110,220,0.08);--bd2:rgba(120,110,220,0.18);--bd3:rgba(120,110,220,0.32);
+  --tx:#e8ecff;--tx2:#9098c0;--tx3:#ffffff;
+  --grad:linear-gradient(135deg,#4f8ef7,#7c5cfc,#a855f7);
+  --grad2:linear-gradient(135deg,#06b6d4,#4f8ef7,#7c5cfc);
+  --card:rgba(10,10,30,.85);
+  --nav:rgba(4,4,13,.92);
+  --inp:rgba(14,14,40,.9);
+  --sidebar:rgba(7,7,26,.96);
+  --user-bubble:linear-gradient(135deg,rgba(79,142,247,.18),rgba(124,92,252,.18));
+  --user-border:rgba(124,92,252,.3);
+  --ai-bubble:rgba(10,10,28,.85);
+  --ai-border:rgba(120,110,220,0.18);
+  --shadow:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#f0f0fa;--s0:#e8eaf8;--s1:#e4e6f8;--s2:#d8daf0;--s3:#cccfe8;
+  --bd:rgba(90,80,200,.08);--bd2:rgba(90,80,200,.18);--bd3:rgba(90,80,200,.32);
+  --tx:#111130;--tx2:#4a4a82;--tx3:#000020;
+  --card:rgba(255,255,255,.9);
+  --nav:rgba(240,240,250,.94);
+  --inp:rgba(232,234,250,.95);
+  --sidebar:rgba(240,240,252,.97);
+  --user-bubble:linear-gradient(135deg,rgba(79,142,247,.12),rgba(124,92,252,.12));
+  --user-border:rgba(124,92,252,.25);
+  --ai-bubble:rgba(255,255,255,.92);
+  --ai-border:rgba(90,80,200,.15);
+  --shadow:rgba(0,0,30,.12);
+}
+
+/* ══════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{
+  height:100%;
+  height:-webkit-fill-available;
+}
+body{
+  height:100%;
+  min-height:100vh;
+  min-height:-webkit-fill-available;
+  font-family:'Sora',sans-serif;
+  background:var(--bg);color:var(--tx);
+  overflow:hidden;
+  transition:background .3s,color .3s;
+}
+a{color:inherit;text-decoration:none;}
+*{-webkit-tap-highlight-color:transparent;}
+button{font-family:'Sora',sans-serif;}
+
+/* ══════════════════════════════════════
+   AMBIENT
+══════════════════════════════════════ */
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.025;mix-blend-mode:overlay;}
+.orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(100px);z-index:0;}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(79,142,247,.09) 0%,transparent 70%);top:-120px;left:-80px;}
+.orb2{width:420px;height:420px;background:radial-gradient(circle,rgba(168,85,247,.07) 0%,transparent 70%);bottom:-100px;right:-80px;}
+[data-theme=light] .orb1{background:radial-gradient(circle,rgba(79,142,247,.05) 0%,transparent 70%);}
+[data-theme=light] .orb2{background:radial-gradient(circle,rgba(168,85,247,.04) 0%,transparent 70%);}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(124,92,252,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(124,92,252,.018) 1px,transparent 1px);
+  background-size:64px 64px;mask-image:radial-gradient(ellipse 70% 70% at 50% 30%,black 20%,transparent 100%);}
+
+/* ══════════════════════════════════════
+   CURSOR
+══════════════════════════════════════ */
+#cur,#curR{position:fixed;pointer-events:none;z-index:9999;border-radius:50%;transform:translate(-50%,-50%);}
+#cur{width:9px;height:9px;background:#7c5cfc;mix-blend-mode:screen;}
+#curR{width:32px;height:32px;border:1.5px solid rgba(124,92,252,.45);z-index:9998;transition:width .15s,height .15s;mix-blend-mode:screen;}
+@media(pointer:coarse){#cur,#curR{display:none!important;}}
+
+/* ══════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════ */
+.layout{
+  display:grid;
+  grid-template-columns:270px 1fr;
+  height:100vh;
+  height:100dvh; /* dynamic viewport height — fixes mobile browser chrome */
+  position:relative;z-index:2;
+  overflow:hidden;
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+.sidebar{
+  background:var(--sidebar);
+  border-right:1px solid var(--bd2);
+  display:flex;flex-direction:column;
+  backdrop-filter:blur(28px);
+  transition:background .3s;
+  overflow:hidden;
+  height:100vh;
+  height:100dvh;
+}
+.sidebar-header{padding:18px 16px 14px;border-bottom:1px solid var(--bd);}
+.logo{display:flex;align-items:center;gap:9px;margin-bottom:14px;}
+.logo-box{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;}
+.logo-text{font-size:15px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* Model picker */
+.model-section{margin-bottom:0;}
+.field-label{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.model-select{
+  width:100%;padding:9px 11px;border-radius:10px;
+  background:var(--inp);border:1px solid var(--bd2);
+  color:var(--tx);font-family:'Sora',sans-serif;font-size:12.5px;
+  outline:none;cursor:pointer;transition:border-color .2s;
+}
+.model-select:focus{border-color:rgba(124,92,252,.5);}
+.model-select option{background:var(--s2);color:var(--tx);}
+
+/* Model info badge */
+.model-info{display:flex;align-items:center;gap:6px;margin-top:8px;padding:7px 10px;border-radius:8px;background:rgba(124,92,252,.06);border:1px solid rgba(124,92,252,.12);}
+.model-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;flex-shrink:0;}
+.model-info-text{font-size:11px;color:var(--tx2);line-height:1.4;flex:1;}
+.model-info-name{font-weight:700;color:var(--tx);font-size:11.5px;}
+
+/* Sidebar body */
+.sidebar-body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.sidebar-body::-webkit-scrollbar{width:3px;}
+.sidebar-body::-webkit-scrollbar-thumb{background:rgba(124,92,252,.25);border-radius:3px;}
+
+.new-chat-btn{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  border-radius:10px;background:var(--grad);color:#fff;border:none;
+  font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;
+  box-shadow:0 0 20px rgba(124,92,252,.2);
+}
+.new-chat-btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 0 30px rgba(124,92,252,.4);}
+
+.history-label{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);margin-top:10px;margin-bottom:4px;padding:0 2px;}
+.history-item{
+  padding:9px 11px;border-radius:9px;font-size:12px;color:var(--tx2);
+  cursor:pointer;border:1px solid transparent;transition:all .18s;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;gap:8px;
+}
+.history-item i{font-size:11px;flex-shrink:0;opacity:.6;}
+.history-item:hover{background:var(--s2);border-color:var(--bd2);color:var(--tx);}
+.history-item.active{background:rgba(124,92,252,.08);border-color:rgba(124,92,252,.2);color:#a5b4fc;}
+.no-history{font-size:11.5px;color:var(--tx2);opacity:.5;padding:8px 2px;font-style:italic;}
+
+/* Sidebar footer */
+.sidebar-footer{padding:14px;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:8px;}
+.footer-row{display:flex;gap:7px;}
+.footer-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  color:var(--tx2);font-size:11.5px;font-weight:600;
+  padding:8px 10px;border-radius:9px;border:1px solid var(--bd2);
+  transition:all .2s;cursor:pointer;background:transparent;
+}
+.footer-btn:hover{color:var(--tx);background:var(--s1);border-color:var(--bd3);}
+
+/* ══════════════════════════════════════
+   CHAT AREA
+══════════════════════════════════════ */
+.chat-area{
+  display:flex;flex-direction:column;
+  height:100vh;height:100dvh;
+  min-width:0;overflow:hidden;
+}
+
+/* Top bar */
+.topbar{
+  padding:13px 22px;border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--nav);backdrop-filter:blur(16px);
+  flex-shrink:0;
+}
+.topbar-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.topbar-avatar{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--grad);display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:#fff;flex-shrink:0;
+  box-shadow:0 0 16px rgba(124,92,252,.3);
+}
+.topbar-info{min-width:0;}
+.topbar-title{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-sub{font-size:11px;color:var(--tx2);margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.tb-btn{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--bd2);
+  background:transparent;color:var(--tx2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  transition:all .2s;
+}
+.tb-btn:hover{background:var(--s1);color:var(--tx);}
+.model-pill{
+  padding:4px 12px;border-radius:20px;
+  background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);
+  font-size:11px;font-weight:700;color:#a5b4fc;white-space:nowrap;
+}
+
+/* Messages */
+.messages{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:22px;
+  display:flex;flex-direction:column;gap:16px;
+  scroll-behavior:smooth;
+  /* Ensure it never grows past available space */
+  min-height:0;
+}
+.messages::-webkit-scrollbar{width:4px;}
+.messages::-webkit-scrollbar-thumb{background:rgba(124,92,252,.25);border-radius:4px;}
+
+/* Welcome screen */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;gap:14px;
+  animation:fadeUp .5s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.welcome-icon{
+  width:68px;height:68px;border-radius:20px;
+  background:var(--grad);display:flex;align-items:center;justify-content:center;
+  font-size:26px;color:#fff;
+  box-shadow:0 0 40px rgba(124,92,252,.35);
+  animation:pulseGlow 3s ease-in-out infinite;
+}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 30px rgba(124,92,252,.3)}50%{box-shadow:0 0 55px rgba(124,92,252,.55)}}
+.welcome h2{font-family:'Outfit',sans-serif;font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-.02em;}
+.welcome h2 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.welcome p{color:var(--tx2);font-size:13.5px;max-width:380px;line-height:1.7;}
+.suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px;max-width:480px;}
+.suggestion{
+  padding:8px 16px;border-radius:20px;
+  background:var(--s2);border:1px solid var(--bd2);
+  font-size:12px;color:var(--tx2);cursor:pointer;
+  transition:all .18s;
+}
+.suggestion:hover{border-color:rgba(124,92,252,.4);color:#a5b4fc;background:rgba(124,92,252,.06);transform:translateY(-1px);}
+
+/* Message bubbles */
+.msg{display:flex;gap:10px;animation:msgIn .28s ease;max-width:100%;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;margin-top:2px;
+}
+.msg.ai .msg-avatar{background:var(--grad);color:#fff;box-shadow:0 0 12px rgba(124,92,252,.25);}
+.msg.user .msg-avatar{background:var(--s2);border:1px solid var(--bd2);color:#a5b4fc;}
+.msg-body{max-width:72%;min-width:0;}
+.msg-bubble{
+  padding:13px 16px;border-radius:14px;font-size:13.5px;line-height:1.75;
+  word-break:break-word;
+}
+.msg.ai .msg-bubble{
+  background:var(--ai-bubble);border:1px solid var(--ai-border);
+  border-bottom-left-radius:4px;
+}
+.msg.user .msg-bubble{
+  background:var(--user-bubble);border:1px solid var(--user-border);
+  border-bottom-right-radius:4px;text-align:left;
+}
+.msg-footer{display:flex;align-items:center;justify-content:space-between;margin-top:5px;gap:8px;}
+.msg-time{font-size:10px;color:var(--tx2);opacity:.55;}
+.msg-copy{
+  font-size:10px;color:var(--tx2);cursor:pointer;opacity:0;
+  padding:2px 7px;border-radius:5px;border:1px solid transparent;
+  transition:all .18s;background:transparent;
+}
+.msg:hover .msg-copy{opacity:.5;}
+.msg-copy:hover{opacity:1!important;border-color:var(--bd2);background:var(--s2);color:var(--tx);}
+
+/* Markdown inside bubbles */
+.msg-bubble p{margin-bottom:.5em;}
+.msg-bubble p:last-child{margin-bottom:0;}
+.msg-bubble code{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.2);
+  padding:1px 6px;border-radius:4px;
+}
+.msg-bubble pre{
+  background:rgba(0,0,10,.5);border:1px solid var(--bd2);
+  border-radius:10px;padding:14px;margin:.6em 0;overflow-x:auto;
+}
+[data-theme=light] .msg-bubble pre{background:rgba(220,222,248,.6);}
+.msg-bubble pre code{background:none;border:none;padding:0;font-size:12px;}
+.msg-bubble ul,.msg-bubble ol{padding-left:1.4em;margin:.4em 0;}
+.msg-bubble li{margin-bottom:.2em;}
+.msg-bubble strong{font-weight:700;color:var(--tx3);}
+.msg-bubble em{font-style:italic;color:var(--tx2);}
+.msg-bubble h1,.msg-bubble h2,.msg-bubble h3{font-weight:700;margin:.6em 0 .3em;color:var(--tx3);font-family:'Outfit',sans-serif;}
+.msg-bubble h1{font-size:1.15em;}
+.msg-bubble h2{font-size:1.05em;}
+.msg-bubble h3{font-size:.95em;}
+.msg-bubble blockquote{border-left:3px solid rgba(124,92,252,.4);padding-left:10px;margin:.4em 0;color:var(--tx2);font-style:italic;}
+.msg-bubble hr{border:none;border-top:1px solid var(--bd2);margin:.6em 0;}
+
+/* Model tag on AI message */
+.msg-model-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tx2);opacity:.55;margin-bottom:5px;
+}
+.msg-model-tag i{font-size:9px;}
+
+/* Typing indicator */
+.typing-wrap{display:flex;gap:10px;animation:msgIn .25s ease;}
+.typing-bubble{
+  padding:14px 18px;border-radius:14px;border-bottom-left-radius:4px;
+  background:var(--ai-bubble);border:1px solid var(--ai-border);
+}
+.typing{display:flex;gap:4px;align-items:center;}
+.typing span{
+  width:7px;height:7px;border-radius:50%;background:#7c5cfc;
+  animation:typingDot 1.2s ease-in-out infinite;
+}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes typingDot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-7px);opacity:1}}
+
+/* ══════════════════════════════════════
+   INPUT AREA
+══════════════════════════════════════ */
+.input-area{
+  padding:12px 22px 14px;
+  /* iOS safe area for devices with home bar */
+  padding-bottom:max(14px, env(safe-area-inset-bottom));
+  border-top:1px solid var(--bd);
+  background:var(--nav);backdrop-filter:blur(16px);
+  flex-shrink:0;
+  /* Never let it be pushed off screen */
+  position:relative;z-index:10;
+}
+.input-toolbar{
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;
+  flex-wrap:wrap;
+}
+.toolbar-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:8px;
+  background:transparent;border:1px solid var(--bd2);
+  color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;
+  transition:all .18s;white-space:nowrap;
+}
+.toolbar-btn:hover{background:var(--s1);color:var(--tx);border-color:var(--bd3);}
+.toolbar-btn.active{background:rgba(124,92,252,.1);border-color:rgba(124,92,252,.3);color:#a5b4fc;}
+.system-input{
+  display:none;margin-bottom:10px;
+}
+.system-input.show{display:block;}
+.system-textarea{
+  width:100%;padding:9px 12px;border-radius:10px;
+  background:var(--inp);border:1px solid var(--bd2);
+  color:var(--tx);font-family:'Sora',sans-serif;font-size:12px;
+  outline:none;resize:none;min-height:48px;max-height:80px;
+  transition:border-color .2s;
+}
+.system-textarea:focus{border-color:rgba(124,92,252,.45);}
+.system-textarea::placeholder{color:var(--tx2);opacity:.5;}
+.input-wrap{
+  display:flex;gap:9px;align-items:flex-end;
+  background:var(--inp);border:1px solid var(--bd2);
+  border-radius:14px;padding:9px 12px;
+  transition:border-color .25s, box-shadow .25s;
+}
+.input-wrap:focus-within{border-color:rgba(124,92,252,.5);box-shadow:0 0 0 3px rgba(124,92,252,.07);}
+.msg-input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--tx);font-family:'Sora',sans-serif;
+  font-size:16px; /* 16px prevents iOS auto-zoom on focus */
+  resize:none;max-height:120px;min-height:22px;line-height:1.55;
+}
+@media(min-width:769px){
+  .msg-input{font-size:13.5px;}
+}
+.msg-input::placeholder{color:var(--tx2);opacity:.5;}
+.input-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.send-btn{
+  width:36px;height:36px;border-radius:9px;background:var(--grad);border:none;
+  color:#fff;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;box-shadow:0 0 14px rgba(124,92,252,.2);
+  flex-shrink:0;
+}
+.send-btn:hover:not(:disabled){box-shadow:0 0 24px rgba(124,92,252,.5);transform:translateY(-1px);}
+.send-btn:disabled{opacity:.35;cursor:default;transform:none;}
+.input-hint{font-size:10.5px;color:var(--tx2);text-align:center;margin-top:8px;opacity:.4;}
+
+/* ══════════════════════════════════════
+   MOBILE / TABLET RESPONSIVE
+══════════════════════════════════════ */
+.mob-sidebar-toggle{display:none;}
+
+/* ── Tablet (769–1024px) ── */
+@media(max-width:1024px) and (min-width:769px){
+  .layout{grid-template-columns:220px 1fr;}
+  .input-area{padding:10px 14px max(14px, env(safe-area-inset-bottom));}
+  .input-wrap{padding:8px 10px;}
+  .msg-input{font-size:13px;}
+  .model-pill{display:none;}
+  .input-toolbar{gap:5px;}
+  .toolbar-btn{padding:5px 9px;font-size:10.5px;}
+}
+
+/* ── Mobile (≤768px) ── */
+@media(max-width:768px){
+  .layout{
+    grid-template-columns:1fr;
+    height:100vh;
+    height:100dvh;
+  }
+
+  /* Sidebar slides in as drawer */
+  .sidebar{
+    position:fixed;left:-280px;top:0;bottom:0;
+    width:280px;z-index:300;
+    transition:left .28s cubic-bezier(.4,0,.2,1);
+    height:100%;
+  }
+  .sidebar.open{left:0;}
+
+  /* Overlay behind sidebar */
+  .mob-overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:299;display:none;
+    backdrop-filter:blur(2px);
+  }
+  .mob-overlay.show{display:block;}
+
+  /* Show hamburger toggle */
+  .mob-sidebar-toggle{display:flex;}
+
+  /* Chat area fills full screen, flex column, no overflow on wrapper */
+  .chat-area{
+    height:100vh;height:100dvh;
+    display:flex;flex-direction:column;
+    overflow:hidden;
+    width:100%;
+  }
+
+  /* Topbar compact */
+  .topbar{padding:10px 14px;}
+  .topbar-sub{display:none;}
+  .model-pill{
+    max-width:120px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;
+    font-size:10px;
+  }
+
+  /* Messages grow, scroll internally */
+  .messages{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    min-height:0;
+    padding:14px 12px;
+    gap:12px;
+  }
+
+  /* Message bubbles: wider on small screen */
+  .msg-body{max-width:85%;}
+
+  /* Input area stays at the bottom, never hidden */
+  .input-area{
+    flex-shrink:0;
+    padding:10px 12px max(12px, env(safe-area-inset-bottom));
+    border-top:1px solid var(--bd2);
+    position:relative;z-index:10;
+  }
+
+  /* Hide hint text on mobile */
+  .input-hint{display:none;}
+
+  /* Toolbar: smaller, scrollable horizontally if needed */
+  .input-toolbar{
+    gap:5px;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    margin-bottom:8px;
+  }
+  .input-toolbar::-webkit-scrollbar{display:none;}
+  .toolbar-btn{
+    padding:5px 10px;font-size:10.5px;
+    flex-shrink:0;
+  }
+
+  /* Input wrap */
+  .input-wrap{padding:8px 10px;border-radius:12px;}
+  .msg-input{font-size:14px;} /* 16px minimum prevents iOS zoom */
+}
+
+/* ── Very small phones (≤380px) ── */
+@media(max-width:380px){
+  .topbar{padding:8px 10px;}
+  .topbar-title{font-size:13px;}
+  .input-area{padding:8px 10px max(10px, env(safe-area-inset-bottom));}
+  .toolbar-btn span,.toolbar-btn i~span{display:none;}
+  .toolbar-btn{padding:5px 9px;}
+  .msg-body{max-width:90%;}
+}
+
+/* ── iOS Safari specific fix ── */
+@supports(-webkit-touch-callout:none){
+  .chat-area{
+    height:-webkit-fill-available;
+  }
+  .messages{
+    /* ensure messages don't overflow behind keyboard */
+    padding-bottom:8px;
+  }
+}
+
+/* ══════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════ */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(124,92,252,.25);border-radius:4px;}
+</style>
+<link rel="stylesheet" href="style.css" id="extcss"/>
+<script src="limit.js"></script>
+</head>
+<body>
+<div id="cur"></div><div id="curR"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="grid-bg"></div>
+<div class="mob-overlay" id="mobOverlay" onclick="closeSidebar()"></div>
+
+<div class="layout">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="index.html" class="logo">
+        <div class="logo-box"><i class="fas fa-wrench"></i></div>
+        <span class="logo-text">Bit X Tools</span>
+      </a>
+
+      <div class="field-label"><i class="fas fa-microchip"></i> AI Model</div>
+      <select class="model-select" id="modelSelect" onchange="onModelChange()">
+        <optgroup label="─── Chat Models ───">
+          <option value="askai">AskAI — ChatGPT 4o</option>
+          <option value="talkai">TalkAI — GPT-4.1-Nano</option>
+          <option value="dolphin">Dolphin — 24B (Logical)</option>
+          <option value="claude">Claude 3.5 Sonnet</option>
+          <option value="venice">Venice — GLM-4.6</option>
+          <option value="overchat">Overchat — GPT-5.2-Nano</option>
+          <option value="aifree">AI Free — GPT-5.2-Nano</option>
+          <option value="notegpt">NoteGPT — GPT-4.1-Mini</option>
+          <option value="writecream">WriteCream — GPT-4o</option>
+          <option value="writify">Writify — GPT-4o-Turbo</option>
+          <option value="on4t">On4T — GPT-5.2-Standard</option>
+          <option value="openaiid">ChatOpenAI — GPT-4o</option>
+          <option value="softorbits">SoftOrbits — Gemini 1.5 Pro</option>
+        </optgroup>
+      </select>
+
+      <div class="model-info" id="modelInfo">
+        <div class="model-dot"></div>
+        <div>
+          <div class="model-info-name" id="modelInfoName">AskAI — ChatGPT 4o</div>
+          <div class="model-info-text" id="modelInfoDesc">Free · ChatGPT 4o via AskAI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+      <button class="new-chat-btn" onclick="newChat()">
+        <i class="fas fa-plus"></i>New Chat
+      </button>
+      <div class="history-label">Recent Chats</div>
+      <div id="historyList"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="footer-row">
+        <button class="footer-btn" onclick="toggleTheme()">
+          <i class="fas fa-sun" id="themeIcon"></i> Theme
+        </button>
+        <button class="footer-btn" onclick="clearAllHistory()">
+          <i class="fas fa-trash"></i> Clear
+        </button>
+      </div>
+      <a href="index.html" class="footer-btn" style="justify-content:center;text-decoration:none;">
+        <i class="fas fa-arrow-left"></i> Back to Tools
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══════════ CHAT AREA ══════════ -->
+  <div class="chat-area">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="tb-btn mob-sidebar-toggle" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="topbar-avatar"><i class="fas fa-robot"></i></div>
+        <div class="topbar-info">
+          <div class="topbar-title">AI Chat</div>
+          <div class="topbar-sub">Powered by Bit X APIs</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="tb-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-sun" id="themeIconTop"></i></button>
+        <button class="tb-btn" onclick="newChat()" title="New chat"><i class="fas fa-plus"></i></button>
+        <span class="model-pill" id="modelPill">AskAI — ChatGPT 4o</span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon"><i class="fas fa-robot"></i></div>
+        <h2>Ask me <span>anything</span></h2>
+        <p>Multiple AI models via Bit X APIs. Switch models anytime — each chat remembers your full conversation.</p>
+        <div class="suggestions" id="suggestions">
+          <div class="suggestion" onclick="sendSuggestion(this)">What can you do?</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Write a short poem</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Explain quantum computing</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Help me debug code</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Tell me a joke</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Summarize a topic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <div class="input-toolbar">
+        <button class="toolbar-btn" id="systemToggleBtn" onclick="toggleSystemPrompt()">
+          <i class="fas fa-sliders"></i> System Prompt
+        </button>
+        <button class="toolbar-btn" onclick="clearChat()">
+          <i class="fas fa-eraser"></i> Clear Chat
+        </button>
+        <button class="toolbar-btn" onclick="exportChat()">
+          <i class="fas fa-download"></i> Export
+        </button>
+      </div>
+      <div class="system-input" id="systemInput">
+        <textarea class="system-textarea" id="systemPrompt" placeholder="Optional system prompt — e.g. 'You are a helpful coding assistant...'" rows="2"></textarea>
+      </div>
+      <div class="input-wrap">
+        <textarea class="msg-input" id="msgInput" placeholder="Type a message…" rows="1"></textarea>
+        <div class="input-actions">
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+      <div class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   CURSOR
+════════════════════════════════════════════════════ */
+const CU=document.getElementById('cur'),CR=document.getElementById('curR');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;CU.style.left=mx+'px';CU.style.top=my+'px';});
+(function L(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;CR.style.left=rx+'px';CR.style.top=ry+'px';requestAnimationFrame(L);})();
+
+/* ════════════════════════════════════════════════════
+   THEME
+════════════════════════════════════════════════════ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('bx_t',t);
+  const icon=t==='dark'?'fa-sun':'fa-moon';
+  document.getElementById('themeIcon').className=`fas ${icon}`;
+  document.getElementById('themeIconTop').className=`fas ${icon}`;
+}
+applyTheme(localStorage.getItem('bx_t')||'dark');
+function toggleTheme(){
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+
+/* ════════════════════════════════════════════════════
+   MODELS REGISTRY
+   All from BitX/AI folder — route, param, supports chatid, description
+════════════════════════════════════════════════════ */
+const MODELS={
+  askai:{
+    name:'AskAI — ChatGPT 4o',
+    route:'/askai',
+    param:'q',          /* AskAI_AL.js: const { q } = req.query */
+    chatid:false,       /* no chatid param */
+    desc:'Free · ChatGPT 4o via AskAI.free'
+  },
+  talkai:{
+    name:'TalkAI — GPT-4.1-Nano',
+    route:'/talkai',
+    param:'q',          /* Talkai_AI.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · GPT-4.1-Nano via TalkAI'
+  },
+  dolphin:{
+    name:'Dolphin — 24B Logical',
+    route:'/dolphin',
+    param:'q',          /* dolpin_AI.js: const { q, chatid, template } = req.query */
+    chatid:true,
+    extra:{template:'logical'},   /* extra static params */
+    desc:'Free · Dolphin-2.9.4 24B model'
+  },
+  claude:{
+    name:'Claude 3.5 Sonnet',
+    route:'/claude',
+    param:'q',          /* claude.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · Claude 3.5 via DeepAI proxy'
+  },
+  venice:{
+    name:'Venice — GLM-4.6',
+    route:'/venice',
+    param:'q',          /* Venice.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · Venice AI GLM-4.6'
+  },
+  overchat:{
+    name:'Overchat — GPT-5.2-Nano',
+    route:'/overchat',
+    param:'q',          /* Overchat.js: const { q } = req.query */
+    chatid:false,
+    desc:'Free · Overchat GPT-5.2-Nano'
+  },
+  aifree:{
+    name:'AI Free — GPT-5.2-Nano',
+    route:'/aifree',
+    param:'q',          /* Aifree.js: const { q } = req.query */
+    chatid:false,
+    desc:'Free · AI Free Forever GPT-5.2-Nano'
+  },
+  notegpt:{
+    name:'NoteGPT — GPT-4.1-Mini',
+    route:'/notegpt',
+    param:'q',          /* notegpt_AI.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · NoteGPT GPT-4.1-Mini'
+  },
+  writecream:{
+    name:'WriteCream — GPT-4o',
+    route:'/writecream',
+    param:'q',          /* Whitecream_AI.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · WriteCream GPT-4o powered'
+  },
+  writify:{
+    name:'Writify — GPT-4o-Turbo',
+    route:'/writify',
+    param:'q',          /* Writify.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · Writify GPT-4o-Turbo'
+  },
+  on4t:{
+    name:'On4T — GPT-5.2-Standard',
+    route:'/on4t',
+    param:'q',          /* on4t.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · On4T ChatGPT Standard'
+  },
+  openaiid:{
+    name:'ChatOpenAI — GPT-4o',
+    route:'/openaiid',
+    param:'q',          /* openaiid.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · ChatOpenAI.id GPT-4o'
+  },
+  softorbits:{
+    name:'SoftOrbits — Gemini 1.5 Pro',
+    route:'/softorbits',
+    param:'q',          /* softorbits.js: const { q, chatid } = req.query */
+    chatid:true,
+    desc:'Free · SoftOrbits Gemini-1.5-Pro'
+  }
+};
+
+const API_BASE='https://bit-x-apis.vercel.app';
+
+/* ════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════ */
+let currentModel='askai';
+let chatHistory=[];           /* [{role,content}] for display */
+let chatId=generateId();      /* chatid for models that support it */
+let sessions=JSON.parse(localStorage.getItem('bx_sessions')||'[]');
+let activeSessionId=null;
+
+/* URL param model */
+const urlM=new URLSearchParams(location.search).get('model');
+if(urlM&&MODELS[urlM]){currentModel=urlM;document.getElementById('modelSelect').value=urlM;}
+updateModelUI();
+
+/* ════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════ */
+function generateId(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+
+function updateModelUI(){
+  const m=MODELS[currentModel];
+  document.getElementById('modelPill').textContent=m.name;
+  document.getElementById('modelInfoName').textContent=m.name;
+  document.getElementById('modelInfoDesc').textContent=m.desc;
+}
+
+function onModelChange(){
+  currentModel=document.getElementById('modelSelect').value;
+  updateModelUI();
+}
+
+/* Simple markdown → HTML (no external lib needed) */
+function mdToHtml(text){
+  if(!text)return'';
+  return text
+    /* code blocks */
+    .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>`<pre><code>${escX(code.trim())}</code></pre>`)
+    /* inline code */
+    .replace(/`([^`\n]+)`/g,(_,c)=>`<code>${escX(c)}</code>`)
+    /* bold */
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    /* italic */
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    /* headings */
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    /* blockquote */
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    /* hr */
+    .replace(/^---+$/gm,'<hr>')
+    /* unordered list */
+    .replace(/^\s*[-*] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s,s=>`<ul>${s}</ul>`)
+    /* ordered list */
+    .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+    /* line breaks → <br> only outside of block elements */
+    .replace(/\n(?!<(?:ul|ol|li|pre|blockquote|h[123]|hr))/g,'<br>');
+}
+function escX(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escMsg(s){return escX(s);}
+
+function now(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+
+/* ════════════════════════════════════════════════════
+   RENDER
+════════════════════════════════════════════════════ */
+function appendMessage(role,content,modelKey,animate=true){
+  const welcome=document.getElementById('welcome');
+  if(welcome)welcome.remove();
+
+  const msgsEl=document.getElementById('messages');
+  const div=document.createElement('div');
+  div.className=`msg ${role}`;
+  if(!animate)div.style.animation='none';
+
+  const icon=role==='ai'?'fa-robot':'fa-user';
+  const modelTag=role==='ai'&&modelKey?`<div class="msg-model-tag"><i class="fas fa-microchip"></i>${MODELS[modelKey]?.name||modelKey}</div>`:'';
+  const bubbleContent=role==='ai'?mdToHtml(content):escMsg(content).replace(/\n/g,'<br>');
+
+  div.innerHTML=`
+    <div class="msg-avatar"><i class="fas ${icon}"></i></div>
+    <div class="msg-body">
+      ${modelTag}
+      <div class="msg-bubble">${bubbleContent}</div>
+      <div class="msg-footer">
+        <span class="msg-time">${now()}</span>
+        <button class="msg-copy" onclick="copyMsg(this,'${btoa(encodeURIComponent(content))}')"><i class="fas fa-copy"></i> Copy</button>
+      </div>
+    </div>`;
+  msgsEl.appendChild(div);
+  msgsEl.scrollTop=msgsEl.scrollHeight;
+  return div;
+}
+
+function copyMsg(btn,b64){
+  const text=decodeURIComponent(atob(b64));
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.innerHTML='<i class="fas fa-check"></i> Copied';
+    setTimeout(()=>{btn.innerHTML='<i class="fas fa-copy"></i> Copy';},1500);
+  });
+}
+
+function showTyping(){
+  const msgsEl=document.getElementById('messages');
+  const div=document.createElement('div');
+  div.className='typing-wrap';div.id='typing-indicator';
+  div.innerHTML=`
+    <div class="msg-avatar" style="width:34px;height:34px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;margin-top:2px;box-shadow:0 0 12px rgba(124,92,252,.25);">
+      <i class="fas fa-robot"></i>
+    </div>
+    <div class="typing-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  msgsEl.appendChild(div);
+  msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing-indicator');if(t)t.remove();}
+
+/* ════════════════════════════════════════════════════
+   SEND
+════════════════════════════════════════════════════ */
+async function sendMessage(){
+  const inputEl=document.getElementById('msgInput');
+  const q=inputEl.value.trim();
+  if(!q)return;
+  if(!await window.bxtCheckLimit()) return;
+  inputEl.value='';inputEl.style.height='auto';
+  document.getElementById('sendBtn').disabled=true;
+
+  const model=MODELS[currentModel];
+  const systemPrompt=document.getElementById('systemPrompt').value.trim();
+
+  /* Add to history */
+  chatHistory.push({role:'user',content:q,model:currentModel});
+  appendMessage('user',q,null);
+  showTyping();
+
+  try{
+    /* Build URL */
+    let url=`${API_BASE}${model.route}?${model.param}=${encodeURIComponent(q)}`;
+
+    /* Prepend system prompt to q if set and model doesn't natively support it */
+    if(systemPrompt){
+      const fullQ=`[System: ${systemPrompt}]\n\n${q}`;
+      url=`${API_BASE}${model.route}?${model.param}=${encodeURIComponent(fullQ)}`;
+    }
+
+    /* Add chatid for models that support it */
+    if(model.chatid){
+      url+=`&chatid=${encodeURIComponent(chatId)}`;
+    }
+
+    /* Add any extra static params (e.g. dolphin template) */
+    if(model.extra){
+      for(const[k,v] of Object.entries(model.extra)){
+        url+=`&${k}=${encodeURIComponent(v)}`;
+      }
+    }
+
+    const res=await fetch(url,{signal:AbortSignal.timeout(30000)});
+    const data=await res.json();
+    removeTyping();
+
+    /* All BitX AI endpoints return { status, response: "..." } */
+    const reply=data.response||data.result||data.answer||data.text||data.message||(typeof data==='string'?data:JSON.stringify(data));
+    chatHistory.push({role:'ai',content:reply,model:currentModel});
+    appendMessage('ai',reply,currentModel);
+
+    /* Save / update session */
+    saveSession(q);
+
+  }catch(e){
+    removeTyping();
+    const errMsg=e.name==='TimeoutError'
+      ?'The AI took too long to respond. Please try again.'
+      :`Error: ${e.message}`;
+    appendMessage('ai',errMsg,currentModel);
+  }
+
+  document.getElementById('sendBtn').disabled=false;
+}
+
+function sendSuggestion(el){
+  document.getElementById('msgInput').value=el.textContent;
+  sendMessage();
+}
+
+/* ════════════════════════════════════════════════════
+   SESSIONS / HISTORY
+════════════════════════════════════════════════════ */
+function saveSession(firstMsg){
+  const existing=sessions.find(s=>s.id===activeSessionId);
+  if(existing){
+    existing.messages=chatHistory;
+    existing.model=currentModel;
+    existing.updated=Date.now();
+  }else{
+    const session={
+      id:generateId(),
+      title:firstMsg.slice(0,45)+(firstMsg.length>45?'…':''),
+      messages:chatHistory,
+      model:currentModel,
+      chatId:chatId,
+      created:Date.now(),updated:Date.now()
+    };
+    sessions.unshift(session);
+    activeSessionId=session.id;
+    if(sessions.length>30)sessions=sessions.slice(0,30);
+  }
+  localStorage.setItem('bx_sessions',JSON.stringify(sessions));
+  renderHistory();
+}
+
+function loadSession(s){
+  activeSessionId=s.id;
+  chatHistory=s.messages||[];
+  chatId=s.chatId||generateId();
+  currentModel=s.model||'askai';
+  document.getElementById('modelSelect').value=currentModel;
+  updateModelUI();
+
+  const msgsEl=document.getElementById('messages');
+  msgsEl.innerHTML='';
+  chatHistory.forEach(m=>appendMessage(m.role,m.content,m.model,false));
+  renderHistory();
+}
+
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  list.innerHTML='';
+  if(!sessions.length){
+    list.innerHTML='<div class="no-history">No chats yet</div>';return;
+  }
+  sessions.slice(0,20).forEach(s=>{
+    const div=document.createElement('div');
+    div.className='history-item'+(s.id===activeSessionId?' active':'');
+    div.innerHTML=`<i class="fas fa-comment-dots"></i><span style="overflow:hidden;text-overflow:ellipsis;">${escX(s.title)}</span>`;
+    div.onclick=()=>loadSession(s);
+    list.appendChild(div);
+  });
+}
+renderHistory();
+
+function newChat(){
+  chatHistory=[];
+  chatId=generateId();
+  activeSessionId=null;
+  const msgsEl=document.getElementById('messages');
+  msgsEl.innerHTML=`
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon"><i class="fas fa-robot"></i></div>
+    <h2>Ask me <span>anything</span></h2>
+    <p>Multiple AI models via Bit X APIs. Switch models anytime.</p>
+    <div class="suggestions">
+      <div class="suggestion" onclick="sendSuggestion(this)">What can you do?</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Write a short poem</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Explain quantum computing</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Help me debug code</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Tell me a joke</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Summarize a topic</div>
+    </div>
+  </div>`;
+  renderHistory();
+}
+
+function clearChat(){
+  chatHistory=[];
+  chatId=generateId();
+  const msgsEl=document.getElementById('messages');
+  msgsEl.innerHTML='';
+}
+
+function clearAllHistory(){
+  if(!confirm('Delete all chat history?'))return;
+  sessions=[];
+  localStorage.removeItem('bx_sessions');
+  activeSessionId=null;
+  renderHistory();
+}
+
+function exportChat(){
+  if(!chatHistory.length){alert('No messages to export.');return;}
+  const lines=chatHistory.map(m=>`[${m.role.toUpperCase()}] ${m.content}`).join('\n\n');
+  const blob=new Blob([lines],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`chat-${Date.now()}.txt`;
+  a.click();
+}
+
+/* ════════════════════════════════════════════════════
+   SYSTEM PROMPT TOGGLE
+════════════════════════════════════════════════════ */
+function toggleSystemPrompt(){
+  const si=document.getElementById('systemInput');
+  const btn=document.getElementById('systemToggleBtn');
+  const show=si.classList.toggle('show');
+  btn.classList.toggle('active',show);
+}
+
+/* ════════════════════════════════════════════════════
+   INPUT AUTO-RESIZE + KEYBOARD
+════════════════════════════════════════════════════ */
+const msgInput=document.getElementById('msgInput');
+msgInput.addEventListener('input',()=>{
+  msgInput.style.height='auto';
+  msgInput.style.height=Math.min(msgInput.scrollHeight,120)+'px';
+});
+msgInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+});
+
+/* ════════════════════════════════════════════════════
+   MOBILE SIDEBAR
+════════════════════════════════════════════════════ */
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('mobOverlay').classList.add('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobOverlay').classList.remove('show');
+}
+</script>
+</body>
+   </html>
