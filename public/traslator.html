@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+ 
+<head>
+  <meta charset="utf-8">
+  <title>Language Translator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+ 
+  <style>
+    :root {
+      --bg-primary: #0F0F23;
+      --bg-secondary: #1A1B2E;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A0A0;
+      --accent-start: #7C3AED;
+      --accent-end: #8B5CF6;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --backdrop-blur: blur(20px);
+    }
+ 
+    [data-theme="light"] {
+      --bg-primary: #F8FAFC;
+      --bg-secondary: #FFFFFF;
+      --glass-bg: rgba(0, 0, 0, 0.05);
+      --glass-border: rgba(0, 0, 0, 0.1);
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+ 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+ 
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      color: var(--text-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+ 
+    .top-bar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 10px 20px;
+      box-shadow: var(--shadow);
+    }
+ 
+    .top-bar h1 {
+      font-size: 22px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+    }
+ 
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: color 0.2s ease;
+    }
+ 
+    .back-btn:hover { color: var(--accent-start); }
+ 
+    .theme-corner {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+ 
+    .theme-toggle {
+      position: relative;
+      width: 60px;
+      height: 32px;
+      background: var(--glass-bg);
+      border: 2px solid var(--glass-border);
+      border-radius: 28px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: var(--backdrop-blur);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+ 
+    .theme-toggle .thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 24px;
+      height: 24px;
+      background: var(--text-primary);
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+ 
+    .theme-toggle[data-theme="dark"] {
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      border-color: var(--accent-end);
+    }
+ 
+    .theme-toggle[data-theme="dark"] .thumb {
+      transform: translateX(28px);
+      background: white;
+    }
+ 
+    .theme-toggle:hover { transform: scale(1.05); }
+ 
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding-top: 100px;
+      padding-bottom: 60px;
+    }
+ 
+    .footer {
+      padding: 16px 0;
+      text-align: center;
+      width: 100%;
+    }
+ 
+    .footer p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: var(--text-primary);
+    }
+ 
+    .container {
+      max-width: 720px;
+      width: 100%;
+      padding: 40px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+ 
+    .wrapper {
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 24px;
+    }
+ 
+    .text-input { display: flex; }
+ 
+    .text-input .to-text { border-left: 1px solid var(--glass-border); }
+ 
+    .text-input textarea {
+      flex: 1;
+      height: 280px;
+      border: none;
+      outline: none;
+      resize: none;
+      background: transparent;
+      font-size: 18px;
+      padding: 24px;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+ 
+    .text-input textarea::placeholder { color: var(--text-secondary); }
+    .text-input textarea:focus::placeholder { opacity: 0.5; }
+ 
+    .controls {
+      list-style: none;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+    }
+ 
+    .row { display: flex; align-items: center; flex: 1; }
+ 
+    .from { border-right: 1px solid var(--glass-border); padding-right: 20px; }
+ 
+    .to {
+      border-left: 1px solid var(--glass-border);
+      padding-left: 20px;
+      justify-content: flex-end;
+    }
+ 
+    .icons { display: flex; gap: 8px; }
+ 
+    .icons i {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 12px;
+      backdrop-filter: var(--backdrop-blur);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      transition: all 0.2s ease;
+    }
+ 
+    .icons i:hover {
+      background: var(--accent-start);
+      color: white;
+      transform: translateY(-2px);
+    }
+ 
+    select {
+      background: none;
+      border: none;
+      outline: none;
+      font-size: 18px;
+      color: var(--text-primary);
+      padding: 0 12px;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+    }
+ 
+    select option { background: var(--bg-secondary); color: var(--text-primary); }
+    [data-theme="light"] select option { background: #FFFFFF; }
+ 
+    .exchange {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 12px;
+      backdrop-filter: var(--backdrop-blur);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      transition: all 0.2s ease;
+    }
+ 
+    .exchange:hover {
+      background: var(--accent-start);
+      color: white;
+      transform: rotate(90deg);
+    }
+ 
+    .translate-btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      color: white;
+      font-size: 18px;
+      font-weight: 500;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+    }
+ 
+    .translate-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(124, 58, 237, 0.5);
+    }
+ 
+    .translate-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+ 
+    .text-input textarea::-webkit-scrollbar { width: 6px; }
+    .text-input textarea::-webkit-scrollbar-track { background: var(--glass-bg); border-radius: 3px; }
+    .text-input textarea::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 3px; }
+    .text-input textarea::-webkit-scrollbar-thumb:hover { background: var(--text-primary); }
+ 
+    @media (max-width: 768px) {
+      .top-bar, .theme-corner { position: absolute; }
+      main { padding-top: 90px; }
+      .container { padding: 32px 24px; border-radius: 20px; }
+      .text-input { flex-direction: column; }
+      .text-input .to-text { border-left: none; border-top: 1px solid var(--glass-border); }
+      .text-input textarea { height: 220px; }
+      .controls { flex-direction: column; gap: 16px; padding: 24px; }
+      .row.from, .row.to { border: none !important; padding: 0 !important; width: 100%; justify-content: space-between; }
+      .icons { order: 2; }
+      select { order: 1; flex: none; padding: 0; }
+    }
+ 
+    @media (max-width: 480px) {
+      .top-bar h1 { font-size: 18px; }
+      .container { padding: 24px 16px; }
+      .text-input textarea { height: 200px; padding: 20px; font-size: 16px; }
+    }
+  </style>
+</head>
+ 
+<body>
+ 
+  <div class="top-bar">
+    <button class="back-btn" onclick="window.location.href='https://bit-x-tools.vercel.app/index.html'" title="Back">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1>Language Translator</h1>
+  </div>
+ 
+  <div class="theme-corner">
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" data-theme="dark">
+      <span class="thumb"></span>
+    </button>
+  </div>
+ 
+  <main>
+    <div class="container">
+      <div class="wrapper">
+        <div class="text-input">
+          <textarea spellcheck="false" class="from-text" placeholder="Enter text"></textarea>
+          <textarea spellcheck="false" readonly disabled class="to-text" placeholder="Translation"></textarea>
+        </div>
+        <ul class="controls">
+          <li class="row from">
+            <div class="icons">
+              <i data-lang="from" class="fas fa-volume-up"></i>
+              <i data-lang="from" class="fas fa-copy"></i>
+            </div>
+            <select></select>
+          </li>
+          <li class="exchange"><i class="fas fa-exchange-alt"></i></li>
+          <li class="row to">
+            <select></select>
+            <div class="icons">
+              <i data-lang="to" class="fas fa-volume-up"></i>
+              <i data-lang="to" class="fas fa-copy"></i>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <button class="translate-btn">Translate Text</button>
+    </div>
+  </main>
+ 
+  <footer class="footer">
+    <p>Made with ❤ by Jithula Bhasitha for <a href="https://bit-x-tools.vercel.app/">Bit X Tools</a></p>
+  </footer>
+ 
+  <script>
+    // ── Countries Data ──────────────────────────────────────────────
+    const countries = {
+      "am-ET":"Amharic",   "ar-SA":"Arabic",      "be-BY":"Bielarus",
+      "bem-ZM":"Bemba",    "bi-VU":"Bislama",     "bjs-BB":"Bajan",
+      "bn-IN":"Bengali",   "bo-CN":"Tibetan",     "br-FR":"Breton",
+      "bs-BA":"Bosnian",   "ca-ES":"Catalan",     "cop-EG":"Coptic",
+      "cs-CZ":"Czech",     "cy-GB":"Welsh",       "da-DK":"Danish",
+      "dz-BT":"Dzongkha",  "de-DE":"German",      "dv-MV":"Maldivian",
+      "el-GR":"Greek",     "en-GB":"English",     "es-ES":"Spanish",
+      "et-EE":"Estonian",  "eu-ES":"Basque",      "fa-IR":"Persian",
+      "fi-FI":"Finnish",   "fn-FNG":"Fanagalo",   "fo-FO":"Faroese",
+      "fr-FR":"French",    "gl-ES":"Galician",    "gu-IN":"Gujarati",
+      "ha-NE":"Hausa",     "he-IL":"Hebrew",      "hi-IN":"Hindi",
+      "hr-HR":"Croatian",  "hu-HU":"Hungarian",   "id-ID":"Indonesian",
+      "is-IS":"Icelandic", "it-IT":"Italian",     "ja-JP":"Japanese",
+      "kk-KZ":"Kazakh",    "km-KM":"Khmer",       "kn-IN":"Kannada",
+      "ko-KR":"Korean",    "ku-TR":"Kurdish",     "ky-KG":"Kyrgyz",
+      "la-VA":"Latin",     "lo-LA":"Lao",         "lv-LV":"Latvian",
+      "men-SL":"Mende",    "mg-MG":"Malagasy",    "mi-NZ":"Maori",
+      "ms-MY":"Malay",     "mt-MT":"Maltese",     "my-MM":"Burmese",
+      "ne-NP":"Nepali",    "niu-NU":"Niuean",     "nl-NL":"Dutch",
+      "no-NO":"Norwegian", "ny-MW":"Nyanja",      "ur-PK":"Pakistani",
+      "pau-PW":"Palauan",  "pa-IN":"Panjabi",     "ps-PK":"Pashto",
+      "pis-SB":"Pijin",    "pl-PL":"Polish",      "pt-PT":"Portuguese",
+      "rn-BI":"Kirundi",   "ro-RO":"Romanian",    "ru-RU":"Russian",
+      "sg-CF":"Sango",     "si-LK":"Sinhala",     "sk-SK":"Slovak",
+      "sm-WS":"Samoan",    "sn-ZW":"Shona",       "so-SO":"Somali",
+      "sq-AL":"Albanian",  "sr-RS":"Serbian",     "sv-SE":"Swedish",
+      "sw-SZ":"Swahili",   "ta-LK":"Tamil",       "te-IN":"Telugu",
+      "tet-TL":"Tetum",    "tg-TJ":"Tajik",       "th-TH":"Thai",
+      "ti-TI":"Tigrinya",  "tk-TM":"Turkmen",     "tl-PH":"Tagalog",
+      "tn-BW":"Tswana",    "to-TO":"Tongan",      "tr-TR":"Turkish",
+      "uk-UA":"Ukrainian", "uz-UZ":"Uzbek",       "vi-VN":"Vietnamese",
+      "wo-SN":"Wolof",     "xh-ZA":"Xhosa",       "yi-YD":"Yiddish",
+      "zu-ZA":"Zulu"
+    };
+ 
+    // ── DOM References ──────────────────────────────────────────────
+    const fromText     = document.querySelector(".from-text"),
+          toText       = document.querySelector(".to-text"),
+          exchangeIcon = document.querySelector(".exchange"),
+          selectTag    = document.querySelectorAll("select"),
+          icons        = document.querySelectorAll(".row i"),
+          translateBtn = document.querySelector(".translate-btn");
+ 
+    // ── Populate Dropdowns ──────────────────────────────────────────
+    selectTag.forEach((tag, id) => {
+      for (let code in countries) {
+        const selected = id === 0
+          ? (code === "en-GB" ? "selected" : "")
+          : (code === "si-LK" ? "selected" : "");
+        tag.insertAdjacentHTML("beforeend",
+          `<option ${selected} value="${code}">${countries[code]}</option>`
+        );
+      }
+    });
+ 
+    // ── Swap Languages & Text ───────────────────────────────────────
+    exchangeIcon.addEventListener("click", () => {
+      const tempText        = fromText.value;
+      const tempLang        = selectTag[0].value;
+      fromText.value        = toText.value;
+      toText.value          = tempText;
+      selectTag[0].value    = selectTag[1].value;
+      selectTag[1].value    = tempLang;
+    });
+ 
+    // ── Clear Translation on Empty Input ────────────────────────────
+    fromText.addEventListener("keyup", () => {
+      if (!fromText.value) toText.value = "";
+    });
+ 
+    // ── Translate ───────────────────────────────────────────────────
+    translateBtn.addEventListener("click", () => {
+      const text          = fromText.value.trim();
+      const translateFrom = selectTag[0].value;
+      const translateTo   = selectTag[1].value;
+      if (!text) return;
+ 
+      toText.setAttribute("placeholder", "Translating...");
+      translateBtn.disabled    = true;
+      translateBtn.textContent = "Translating...";
+ 
+      fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${translateFrom}|${translateTo}`)
+        .then(res => { if (!res.ok) throw new Error("Network error"); return res.json(); })
+        .then(data => {
+          if (data.responseStatus !== 200) {
+            toText.value = "";
+            toText.setAttribute("placeholder", "Translation failed. Try again.");
+            return;
+          }
+          toText.value = data.responseData.translatedText;
+          data.matches.forEach(m => { if (m.id === 0) toText.value = m.translation; });
+          toText.setAttribute("placeholder", "Translation");
+        })
+        .catch(() => {
+          toText.value = "";
+          toText.setAttribute("placeholder", "Error. Check your connection.");
+        })
+        .finally(() => {
+          translateBtn.disabled    = false;
+          translateBtn.textContent = "Translate Text";
+        });
+    });
+ 
+    // ── Theme Toggle ────────────────────────────────────────────────
+    const themeToggle = document.getElementById("themeToggle");
+    const html        = document.documentElement;
+ 
+    function setTheme(theme) {
+      html.setAttribute("data-theme", theme);
+      themeToggle.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+    }
+ 
+    themeToggle.addEventListener("click", () => {
+      setTheme(html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    });
+ 
+    setTheme(localStorage.getItem("theme") || "dark");
+ 
+    // ── Copy & Text-to-Speech Icons ─────────────────────────────────
+    icons.forEach(icon => {
+      icon.addEventListener("click", ({ target }) => {
+        if (!fromText.value || !toText.value) return;
+        const lang = target.dataset.lang;
+ 
+        if (target.classList.contains("fa-copy")) {
+          const text = lang === "from" ? fromText.value : toText.value;
+          navigator.clipboard.writeText(text).catch(() => {
+            const tmp = document.createElement("textarea");
+            tmp.value = text;
+            document.body.appendChild(tmp);
+            tmp.select();
+            document.execCommand("copy");
+            document.body.removeChild(tmp);
+          });
+        } else if (target.classList.contains("fa-volume-up")) {
+          const utter = new SpeechSynthesisUtterance(
+            lang === "from" ? fromText.value : toText.value
+          );
+          utter.lang = lang === "from" ? selectTag[0].value : selectTag[1].value;
+          speechSynthesis.cancel();
+          speechSynthesis.speak(utter);
+        }
+      });
+    });
+  </script>
+ 
+</body>
+</html>
