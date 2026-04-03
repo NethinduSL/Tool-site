@@ -455,7 +455,20 @@ const TOOLS = [
     badge: 'new',
     section: 'Design',
     usage: 'Pick color → HEX / RGB / HSL'
-  }
+  },
+{
+  id: 'translator',
+  name: 'Multi-Translator',
+  cat: 'Tools',
+  icon: 'language', // Standard icon for translation
+  fab: false,
+  color: '#4f8ef7', 
+  desc: 'Translate text instantly between multiple languages',
+  link: 'translator.html',
+  badge: 'Tools',
+  section: 'Utility',
+  usage: 'Enter text → Choose language → Get translation'
+    }
 ];
 
 // Export for Node.js require() — must be unconditional
