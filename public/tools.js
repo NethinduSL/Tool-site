@@ -115,18 +115,6 @@ const TOOLS = [
     usage: 'Paste URL → Download MP3'
   },
   {
-    id: 'dl-ytmp4',
-    name: 'YouTube MP4',
-    cat: 'Download',
-    icon: 'youtube',
-    fab: true,
-    color: '#ef4444',
-    desc: 'Download YouTube videos in MP4 video format.',
-    link: 'downloader.html?type=ytmp4',
-    section: 'Video',
-    usage: 'Paste URL → Download MP4'
-  },
-  {
     id: 'dl-tiktok',
     name: 'TikTok Downloader',
     cat: 'Download',
@@ -276,46 +264,7 @@ const TOOLS = [
     section: 'Fonts',
     usage: 'Browse → Preview fonts'
   },
-  {
-    id: 'word-counter',
-    name: 'Word Counter',
-    cat: 'Text',
-    icon: 'calculator',
-    fab: false,
-    color: '#38bdf8',
-    desc: 'Count words, characters, sentences and reading time.',
-    link: 'tools.html?type=wordcount',
-    badge: 'new',
-    section: 'Analysis',
-    usage: 'Paste text → Word stats'
-  },
-  {
-    id: 'base64',
-    name: 'Base64 Encoder',
-    cat: 'Text',
-    icon: 'code',
-    fab: false,
-    color: '#fbbf24',
-    desc: 'Encode and decode Base64 strings instantly.',
-    link: 'tools.html?type=base64',
-    badge: 'new',
-    section: 'Encode',
-    usage: 'Text → Base64 or reverse'
-  },
-  {
-    id: 'json-formatter',
-    name: 'JSON Formatter',
-    cat: 'Text',
-    icon: 'brackets-curly',
-    fab: false,
-    color: '#a855f7',
-    desc: 'Format, validate and beautify JSON data online.',
-    link: 'tools.html?type=json',
-    badge: 'new',
-    section: 'Dev',
-    usage: 'Paste JSON → Beautify'
-  },
-
+  
   // ── SEARCH ─────────────────────────────────────────────────────────────────
   {
     id: 'search-youtube',
