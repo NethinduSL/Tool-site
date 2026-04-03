@@ -295,10 +295,9 @@ document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;CU.style.lef
 (function L(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;CR.style.left=rx+'px';CR.style.top=ry+'px';requestAnimationFrame(L);})();
 
 /* ── THEME ── */
-const TB=document.getElementById('themeBtn');
-function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('bx_t',t);TB.innerHTML=t==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';}
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('bx_t',t);if(typeof bnSetTheme==='function')bnSetTheme(t);}
 applyTheme(localStorage.getItem('bx_t')||'dark');
-TB.onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+// theme toggle handled by nav.js
 
 const API='https://bit-x-apis.vercel.app';
 
