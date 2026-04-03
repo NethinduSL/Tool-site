@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel — Bit X Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--bg:#04040d;--s0:#07071a;--s1:#0a0a20;--s2:#0e0e28;--s3:#131330;--bd:rgba(120,110,220,0.08);--bd2:rgba(120,110,220,0.18);--tx:#e8ecff;--tx2:#b0b8e0;--grad:linear-gradient(135deg,#4f8ef7,#7c5cfc,#a855f7);--card:rgba(10,10,28,.75);--nav-bg:rgba(4,4,13,0.9);--inp:rgba(14,14,40,.9);}
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+a{color:inherit;text-decoration:none;}button{font-family:'Sora',sans-serif;cursor:pointer;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:rgba(124,92,252,.4);border-radius:4px;}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-card{background:var(--s1);border:1px solid var(--bd2);border-radius:24px;padding:40px;width:100%;max-width:400px;position:relative;}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,92,252,.5),transparent);border-radius:24px 24px 0 0;}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}.login-logo .li{width:38px;height:38px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;}
+.login-logo span{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.login-title{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+.login-sub{font-size:13px;color:var(--tx2);margin-bottom:28px;}
+.form-group{margin-bottom:16px;}.form-label{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:7px;display:block;letter-spacing:.06em;text-transform:uppercase;}
+.form-input{width:100%;padding:12px 16px;border-radius:12px;background:var(--inp);border:1px solid var(--bd2);color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:all .25s;}.form-input:focus{border-color:rgba(124,92,252,.5);box-shadow:0 0 0 3px rgba(124,92,252,.1);}
+.form-submit{width:100%;padding:13px;border-radius:12px;background:var(--grad);color:#fff;border:none;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;}.form-submit:hover{box-shadow:0 0 24px rgba(124,92,252,.5);}.form-submit:disabled{opacity:.6;}
+.form-error{font-size:12px;color:#fca5a5;margin-top:10px;display:none;}.form-error.show{display:block;}
+.badge-admin{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25);font-size:11px;font-weight:700;margin-bottom:20px;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;background:var(--nav-bg);backdrop-filter:blur(24px);border-bottom:1px solid var(--bd2);}
+.nav-logo{display:flex;align-items:center;gap:10px;}.nav-logo .logo-icon{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;}
+.nav-logo span{font-size:15px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.badge-admin-nav{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25);font-size:11px;font-weight:700;}
+.btn-logout{padding:7px 16px;border-radius:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171;font-size:12px;font-weight:700;transition:all .2s;display:flex;align-items:center;gap:6px;}.btn-logout:hover{background:rgba(239,68,68,.22);}
+
+/* MAIN */
+.admin-main{padding:80px 24px 60px;max-width:1200px;margin:0 auto;}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px;}
+.admin-title{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;}.admin-title span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.admin-subtitle{font-size:13px;color:var(--tx2);margin-top:4px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:32px;}
+.astat{background:var(--card);border:1px solid var(--bd2);border-radius:16px;padding:18px;position:relative;overflow:hidden;}
+.astat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,92,252,.3),transparent);}
+.astat-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;line-height:1;}
+.astat-label{font-size:11px;color:var(--tx2);margin-top:5px;font-weight:500;}
+
+/* SECTION */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.section-title{font-size:13px;font-weight:700;color:var(--tx2);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:8px;}.section-title::before{content:'';width:18px;height:1px;background:var(--g2,#7c5cfc);}
+.admin-search{padding:9px 14px;border-radius:10px;background:var(--inp);border:1px solid var(--bd2);color:var(--tx);font-family:'Sora',sans-serif;font-size:13px;outline:none;width:240px;transition:all .25s;}.admin-search:focus{border-color:rgba(124,92,252,.4);}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--bd2);border-radius:16px;overflow:hidden;margin-bottom:24px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:600px;}
+th{padding:11px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx2);background:var(--s1);border-bottom:1px solid var(--bd2);text-align:left;}
+td{padding:13px 16px;font-size:13px;color:var(--tx);border-bottom:1px solid var(--bd);}
+tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(124,92,252,.03);}
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.status-active{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+.status-blocked{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);}
+.role-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.2);}
+.action-btn{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;font-family:'Sora',sans-serif;border:none;transition:all .18s;margin-right:4px;}
+.btn-block{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);}.btn-block:hover{background:rgba(239,68,68,.25);}
+.btn-unblock{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}.btn-unblock:hover{background:rgba(74,222,128,.25);}
+.btn-delete{background:rgba(239,68,68,.08);color:#f87171;border:1px solid rgba(239,68,68,.2);}.btn-delete:hover{background:rgba(239,68,68,.2);}
+.empty-row{text-align:center;padding:40px;color:var(--tx2);font-size:13px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--s1);border:1px solid var(--bd2);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:9999;transition:all .3s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:rgba(74,222,128,.35);color:#4ade80;}.toast.error{border-color:rgba(239,68,68,.35);color:#f87171;}
+
+@media(max-width:600px){.admin-search{width:150px;}nav{padding:10px 16px;}.nav-logo span{display:none;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo"><div class="li"><i class="fas fa-shield-halved"></i></div><span>Admin Panel</span></div>
+      <div class="badge-admin"><i class="fas fa-lock"></i> Restricted Access</div>
+      <div class="login-title">Admin Sign In</div>
+      <div class="login-sub">Enter your admin credentials to access the panel.<br><strong>Supported Admins:</strong> nethindu • jithula</div>
+      
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" type="text" id="adminUser" placeholder="Admin username"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="adminPass" placeholder="Admin password"/></div>
+      <div class="form-error" id="adminLoginErr"></div>
+      <button class="form-submit" id="adminLoginBtn" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Access Panel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none">
+  <nav>
+    <a href="index.html" class="nav-logo"><div class="logo-icon"><i class="fas fa-wrench"></i></div><span>Bit X Tools</span></a>
+    <div class="nav-right">
+      <div class="badge-admin-nav"><i class="fas fa-shield-halved"></i> Admin</div>
+      <button class="btn-logout" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-header">
+      <div>
+        <div class="admin-title">Admin <span>Dashboard</span></div>
+        <div class="admin-subtitle">Manage users and monitor site activity</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="form-submit" style="width:auto;padding:9px 20px;font-size:13px" onclick="loadAll()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button class="form-submit" style="width:auto;padding:9px 20px;font-size:13px;background:linear-gradient(135deg,#ef4444,#dc2626)" onclick="emergencyReset()">
+          <i class="fas fa-triangle-exclamation"></i> Emergency Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="adminStats">
+      <div class="astat"><span class="astat-num" id="as-users">—</span><div class="astat-label">Total Users</div></div>
+      <div class="astat"><span class="astat-num" id="as-active">—</span><div class="astat-label">Active Users</div></div>
+      <div class="astat"><span class="astat-num" id="as-blocked">—</span><div class="astat-label">Blocked Users</div></div>
+      <div class="astat"><span class="astat-num" id="as-today">—</span><div class="astat-label">Today's Visits</div></div>
+      <div class="astat"><span class="astat-num" id="as-total">—</span><div class="astat-label">Total Visits</div></div>
+      <div class="astat"><span class="astat-num" id="as-tasks">—</span><div class="astat-label">Today's Tasks</div></div>
+      <div class="astat"><span class="astat-num" id="as-uptime" style="font-size:18px">—</span><div class="astat-label">Server Uptime</div></div>
+    </div>
+
+    <!-- VISITS CHART -->
+    <div class="section-head"><div class="section-title">Last 7 Days Visits</div></div>
+    <div class="table-wrap" style="margin-bottom:24px;padding:16px 16px 8px">
+      <div id="visitChart" style="display:flex;align-items:flex-end;gap:8px;height:80px;"></div>
+      <div id="visitLabels" style="display:flex;gap:8px;margin-top:6px;font-size:10px;color:var(--tx2)"></div>
+    </div>
+
+    <!-- TOOLS MANAGEMENT -->
+    <div class="section-head" style="margin-top:8px"><div class="section-title">Tools Management</div></div>
+    <div class="table-wrap" style="margin-bottom:24px;padding:16px">
+      <div id="toolsManage" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;"></div>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="section-head">
+      <div class="section-title">All Users</div>
+      <input class="admin-search" type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers()"/>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Last Seen</th><th>Actions</th></tr></thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let adminToken = localStorage.getItem('bxt_admin_token') || '';
+let allUsers = [];
+
+async function adminLogin() {
+  const btn = document.getElementById('adminLoginBtn');
+  const err = document.getElementById('adminLoginErr');
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  if (!u || !p) { 
+    err.textContent = 'Fill all fields.'; 
+    err.classList.add('show'); 
+    return; 
+  }
+  btn.disabled = true; 
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+  err.classList.remove('show');
+  
+  try {
+    const r = await fetch('/api/admin/login', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ username: u, password: p }) 
+    });
+    const d = await r.json();
+    if (d.ok) {
+      adminToken = d.token;
+      localStorage.setItem('bxt_admin_token', adminToken);
+      showPanel();
+    } else {
+      err.textContent = d.error || 'Invalid credentials';
+      err.classList.add('show');
+    }
+  } catch { 
+    err.textContent = 'Network error'; 
+    err.classList.add('show'); 
+  }
+  
+  btn.disabled = false; 
+  btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Access Panel';
+}
+
+function adminLogout() {
+  localStorage.removeItem('bxt_admin_token');
+  adminToken = '';
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+}
+
+function showPanel() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  loadAll();
+  setInterval(() => loadStats(), 5000);
+}
+
+async function authFetch(url, opts = {}) {
+  return fetch(url, { 
+    ...opts, 
+    headers: { 
+      ...(opts.headers || {}), 
+      Authorization: 'Bearer ' + adminToken, 
+      'Content-Type': 'application/json' 
+    } 
+  });
+}
+
+async function loadStats() {
+  try {
+    const r = await authFetch('/api/admin/stats');
+    const d = await r.json();
+    if (!d.ok) return;
+    
+    document.getElementById('as-users').textContent = d.totalUsers;
+    document.getElementById('as-active').textContent = d.activeUsers;
+    document.getElementById('as-blocked').textContent = d.blockedUsers;
+    document.getElementById('as-today').textContent = d.todayVisits;
+    document.getElementById('as-total').textContent = d.totalVisits.toLocaleString();
+    document.getElementById('as-tasks').textContent = d.todayTasks;
+    
+    const s = Math.floor(d.uptimeMs / 1000);
+    document.getElementById('as-uptime').textContent = 
+      `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    
+    renderChart(d.last7);
+  } catch {}
+}
+
+function renderChart(data) {
+  const chart = document.getElementById('visitChart');
+  const labels = document.getElementById('visitLabels');
+  if (!data || !data.length) return;
+  
+  const max = Math.max(...data.map(d => d.count), 1);
+  chart.innerHTML = '';
+  labels.innerHTML = '';
+  
+  data.forEach(d => {
+    const h = Math.max(8, Math.round((d.count / max) * 72));
+    const bar = document.createElement('div');
+    bar.style.cssText = `flex:1;height:${h}px;background:linear-gradient(180deg,#7c5cfc,#4f8ef7);border-radius:4px 4px 0 0;position:relative;cursor:default;`;
+    bar.title = `${d.date}: ${d.count} visits`;
+    chart.appendChild(bar);
+    
+    const lbl = document.createElement('div');
+    lbl.style.flex = '1';
+    lbl.textContent = d.date.slice(5);
+    labels.appendChild(lbl);
+  });
+}
+
+async function loadUsers() {
+  try {
+    const r = await authFetch('/api/admin/users');
+    const d = await r.json();
+    if (d.ok) { 
+      allUsers = d.users; 
+      renderUsers(allUsers); 
+    }
+  } catch {}
+}
+
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  renderUsers(allUsers.filter(u => 
+    u.username.toLowerCase().includes(q) || 
+    u.email.toLowerCase().includes(q) || 
+    (u.displayName||'').toLowerCase().includes(q)
+  ));
+}
+
+function renderUsers(users) {
+  const tb = document.getElementById('usersTable');
+  if (!users.length) { 
+    tb.innerHTML = `<tr><td colspan="8" class="empty-row"><i class="fas fa-users" style="display:block;font-size:24px;margin-bottom:8px;opacity:.3"></i>No users found</td></tr>`; 
+    return; 
+  }
+  
+  tb.innerHTML = users.map((u, i) => `
+    <tr>
+      <td style="color:var(--tx2)">${i+1}</td>
+      <td><strong>${u.displayName||u.username}</strong><br><span style="font-size:11px;color:var(--tx2)">@${u.username}</span></td>
+      <td style="font-size:12px">${u.email}</td>
+      <td>${u.role==='admin'?'<span class="role-badge"><i class="fas fa-shield-halved"></i> Admin</span>':'<span style="color:var(--tx2);font-size:12px">User</span>'}</td>
+      <td><span class="status-badge ${u.status==='blocked'?'status-blocked':'status-active'}"><i class="fas fa-circle" style="font-size:6px"></i>${u.status||'active'}</span></td>
+      <td style="font-size:11px;color:var(--tx2)">${new Date(u.createdAt).toLocaleDateString()}</td>
+      <td style="font-size:11px;color:var(--tx2)">${u.lastSeen?new Date(u.lastSeen).toLocaleDateString():'—'}</td>
+      <td>
+        ${u.status==='blocked'
+          ?`<button class="action-btn btn-unblock" onclick="setUserStatus('${u._id}','active')"><i class="fas fa-unlock"></i> Unblock</button>`
+          :`<button class="action-btn btn-block" onclick="setUserStatus('${u._id}','blocked')"><i class="fas fa-ban"></i> Block</button>`}
+        <button class="action-btn btn-delete" onclick="deleteUser('${u._id}','${u.username}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+async function setUserStatus(id, status) {
+  try {
+    const r = await authFetch(`/api/admin/users/${id}/block`, { method: 'POST', body: JSON.stringify({ status }) });
+    const d = await r.json();
+    if (d.ok) { 
+      showToast(status==='blocked'?'User blocked':'User unblocked', status==='blocked'?'error':'success'); 
+      loadUsers(); 
+    }
+  } catch { showToast('Error updating user', 'error'); }
+}
+
+async function deleteUser(id, username) {
+  if (!confirm(`Delete user @${username}? This cannot be undone.`)) return;
+  try {
+    const r = await authFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) { showToast('User deleted', 'error'); loadUsers(); }
+  } catch { showToast('Error deleting user', 'error'); }
+}
+
+async function emergencyReset() {
+  if (!confirm('⚠️ EMERGENCY RESET: This will clear ALL active sessions and reset today\'s task counts. Users will be logged out. Continue?')) return;
+  try {
+    const r = await authFetch('/api/admin/emergency-reset', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) showToast('Emergency reset complete — all sessions cleared', 'success');
+    else showToast(d.error || 'Reset failed', 'error');
+  } catch { showToast('Network error', 'error'); }
+}
+
+// ── TOOLS MANAGEMENT ──
+const ALL_TOOL_IDS = [
+  {id:'ai-chat',label:'AI Chat'},
+  {id:'ai-image',label:'AI Image Gen'},
+  {id:'ytmp3',label:'YouTube MP3'},
+  {id:'ytmp4',label:'YouTube MP4'},
+  {id:'tiktok',label:'TikTok DL'},
+  {id:'instagram',label:'Instagram DL'},
+  {id:'facebook',label:'Facebook DL'},
+  {id:'twitter',label:'Twitter/X DL'},
+  {id:'spotify',label:'Spotify DL'},
+  {id:'soundcloud',label:'SoundCloud DL'},
+  {id:'mediafire',label:'Mediafire DL'},
+  {id:'pinterest',label:'Pinterest DL'},
+  {id:'threads',label:'Threads DL'},
+  {id:'movies',label:'Movie Search'},
+  {id:'weather',label:'Weather'},
+  {id:'shorten',label:'URL Shortener'},
+  {id:'qr',label:'QR Generator'},
+  {id:'stickers',label:'Telegram Stickers'},
+  {id:'sinsong',label:'Sinhala Song'},
+  {id:'news',label:'Daily Mirror News'},
+];
+let disabledTools = new Set();
+
+async function loadTools() {
+  try {
+    const r = await authFetch('/api/admin/tools');
+    const d = await r.json();
+    if (!d.ok) return;
+    disabledTools = new Set(d.tools.filter(t => !t.enabled).map(t => t.toolId));
+    renderTools_();
+  } catch {}
+}
+
+function renderTools_() {
+  const el = document.getElementById('toolsManage');
+  el.innerHTML = ALL_TOOL_IDS.map(t => {
+    const on = !disabledTools.has(t.id);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:10px;border:1px solid var(--bd2);">
+      <span style="font-size:13px;font-weight:600">${t.label}</span>
+      <button class="action-btn ${on?'btn-unblock':'btn-block'}" onclick="toggleTool('${t.id}',${!on})" style="min-width:72px">
+        <i class="fas ${on?'fa-check':'fa-ban'}"></i> ${on?'Enabled':'Disabled'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function toggleTool(toolId, enable) {
+  try {
+    const r = await authFetch(`/api/admin/tools/${toolId}`, { method: 'POST', body: JSON.stringify({ enabled: enable }) });
+    const d = await r.json();
+    if (d.ok) {
+      if (enable) disabledTools.delete(toolId); else disabledTools.add(toolId);
+      renderTools_();
+      showToast(`Tool ${enable?'enabled':'disabled'}`, enable?'success':'error');
+    }
+  } catch { showToast('Error updating tool', 'error'); }
+}
+
+function loadAll() { loadStats(); loadUsers(); loadTools(); }
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Auto-login if token exists
+if (adminToken) {
+  fetch('/api/admin/stats', { headers: { Authorization: 'Bearer ' + adminToken } })
+    .then(r => r.json())
+    .then(d => { 
+      if (d.ok) showPanel(); 
+      else { 
+        localStorage.removeItem('bxt_admin_token'); 
+        adminToken = ''; 
+      } 
+    })
+    .catch(() => {});
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') adminLogin();
+});
+</script>
+</body>
+</html>
