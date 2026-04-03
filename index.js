@@ -1,3 +1,4 @@
+
 const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const crypto = require('crypto');
@@ -67,40 +68,36 @@ async function recordVisit() {
 
 // ── MIDDLEWARE ────────────────────────────────────────────────────────────────
 app.use(async (req, res, next) => {
-  if (req.path === '/' || req.path === '/index.html') { try { await recordVisit(); } catch {} }
+  if (req.path === '/' || req.path === '/home.html') { try { await recordVisit(); } catch {} }
   next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files but disable the automatic index.html fallback
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
+// Root route — serve home.html
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
 
 // ── LOAD TOOLS FROM tools.js SAFELY ──────────────────────────────────────────
 function loadToolsModule() {
-  // Clear require cache so changes to tools.js are picked up
   const toolsPath = path.join(__dirname, 'public', 'tools.js');
   delete require.cache[toolsPath];
   return require(toolsPath).TOOLS;
 }
 
 // ── TOOLS LIST ROUTE ──────────────────────────────────────────────────────────
-// Returns all tools merged with DB enable/disable state. Cached 10 min.
-// Frontend fetches this — zero hardcoded tool data on the page.
 app.get('/api/tools/list', async (req, res) => {
   try {
-    // Serve from cache if available
     const cached = cache.get('tools_list');
     if (cached) return res.json({ ok: true, tools: cached, cached: true });
 
-    // Load tool definitions
     const TOOLS = loadToolsModule();
 
-    // If DB not ready, return tools with all enabled (no disable state yet)
     if (!db) {
       const tools = TOOLS.map(t => ({ ...t, enabled: true }));
-      // Don't cache when DB isn't ready
       return res.json({ ok: true, tools, cached: false });
     }
 
-    // Merge with disabled list from DB
     const disabledDocs = await db.collection('tool_settings').find({ enabled: false }).toArray();
     const disabledSet = new Set(disabledDocs.map(d => d.toolId));
     const tools = TOOLS.map(t => ({ ...t, enabled: !disabledSet.has(t.id) }));
@@ -109,7 +106,6 @@ app.get('/api/tools/list', async (req, res) => {
     res.json({ ok: true, tools, cached: false });
   } catch (e) {
     console.error('/api/tools/list error:', e.message);
-    // Fallback: try to return tools without DB
     try {
       const TOOLS = loadToolsModule();
       return res.json({ ok: true, tools: TOOLS.map(t => ({ ...t, enabled: true })), cached: false });
@@ -185,7 +181,7 @@ app.get('/api/auth/me', async (req, res) => {
 // ── TASKS / RATE LIMIT ────────────────────────────────────────────────────────
 app.post('/api/tasks/use', async (req, res) => {
   try {
-    if (!db) return res.json({ ok: true }); // fail open if DB not ready
+    if (!db) return res.json({ ok: true });
     const ip = getClientIP(req); const today = getToday();
     const user = await getSessionUser(req);
     if (user && user.status !== 'blocked') return res.json({ ok: true, unlimited: true });
