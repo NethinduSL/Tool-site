@@ -558,28 +558,27 @@ function renderTools(filter=''){
   if(!list.length)grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--tx2)"><i class="fas fa-search" style="font-size:32px;margin-bottom:12px;display:block;opacity:.3"></i>No tools found</div>`;
 }
 
-// Fetch tools from API route (uses server-side cache)
+// Fetch tools from /api/tools/list — uses server-side node-cache
 async function loadTools(){
   const grid=document.getElementById('toolsGrid');
-  // Show skeleton while loading
-  grid.innerHTML=`<div class="tools-skeleton"><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div></div>`;
-  try{
+  grid.innerHTML='<div class="tools-skeleton"><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div></div>';
+  async function tryFetch(){
     const r=await fetch('/api/tools/list');
     const d=await r.json();
-    if(d.ok && d.tools){
-      TOOLS=d.tools;
-      cats=['All',...[...new Set(TOOLS.map(t=>t.cat))]];
-    }
-  }catch(e){
-    console.warn('Tools load failed, retrying...',e);
-    // Retry once after 1s
-    await new Promise(res=>setTimeout(res,1000));
-    try{
-      const r=await fetch('/api/tools/list');
-      const d=await r.json();
-      if(d.ok && d.tools){TOOLS=d.tools;cats=['All',...[...new Set(TOOLS.map(t=>t.cat))]];}
-    }catch{}
+    if(!d.ok||!d.tools||!d.tools.length) throw new Error(d.error||'empty');
+    return d;
   }
+  let d=null;
+  for(let i=0;i<3;i++){
+    try{d=await tryFetch();break;}
+    catch(e){if(i<2)await new Promise(r=>setTimeout(r,1200*(i+1)));}
+  }
+  if(!d||!d.tools||!d.tools.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--tx2)"><i class="fas fa-triangle-exclamation" style="font-size:32px;margin-bottom:12px;display:block;opacity:.4;color:#fb923c"></i>Could not load tools. <a href="" style="color:#a5b4fc">Retry</a></div>';
+    return;
+  }
+  TOOLS=d.tools;
+  cats=['All',...[...new Set(TOOLS.map(t=>t.cat))]];
   renderTabs();
   renderTools();
   document.getElementById('searchInput').addEventListener('input',e=>{activeCat='All';renderTabs();renderTools(e.target.value.toLowerCase());});
