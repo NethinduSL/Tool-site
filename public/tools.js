@@ -151,18 +151,7 @@ const TOOLS = [
     section: 'Social',
     usage: 'Paste video URL → HD/SD'
   },
-  {
-    id: 'dl-twitter',
-    name: 'Twitter/X DL',
-    cat: 'Download',
-    icon: 'x-twitter',
-    fab: true,
-    color: '#b0b8e0',
-    desc: 'Download videos and GIFs from Twitter / X posts.',
-    link: 'downloader.html?type=twitter',
-    section: 'Social',
-    usage: 'Paste tweet URL → Download'
-  },
+
   {
     id: 'dl-spotify',
     name: 'Spotify DL',
@@ -199,32 +188,7 @@ const TOOLS = [
     section: 'Files',
     usage: 'Paste Mediafire link → Download'
   },
-  {
-    id: 'dl-pinterest',
-    name: 'Pinterest DL',
-    cat: 'Download',
-    icon: 'pinterest',
-    fab: true,
-    color: '#ef4444',
-    desc: 'Download Pinterest images and videos easily.',
-    link: 'downloader.html?type=pinterest',
-    badge: 'new',
-    section: 'Images',
-    usage: 'Paste pin URL → Download'
-  },
-  {
-    id: 'dl-threads',
-    name: 'Threads DL',
-    cat: 'Download',
-    icon: 'at',
-    fab: false,
-    color: '#e879f9',
-    desc: 'Download videos and images from Threads posts.',
-    link: 'downloader.html?type=threads',
-    badge: 'new',
-    section: 'Social',
-    usage: 'Paste Threads link → Save'
-  },
+
 
   // ── TEXT ───────────────────────────────────────────────────────────────────
   {
@@ -266,18 +230,7 @@ const TOOLS = [
   },
   
   // ── SEARCH ─────────────────────────────────────────────────────────────────
-  {
-    id: 'search-youtube',
-    name: 'YouTube Search',
-    cat: 'Search',
-    icon: 'magnifying-glass',
-    fab: false,
-    color: '#ef4444',
-    desc: 'Search YouTube videos and get results with thumbnails and links.',
-    link: 'search.html?type=youtube',
-    section: 'Video',
-    usage: 'Enter keyword → Video results'
-  },
+  
   {
     id: 'search-wallpaper',
     name: 'Wallpaper Search',
@@ -301,19 +254,6 @@ const TOOLS = [
     link: 'search.html?type=anime',
     section: 'Anime',
     usage: 'Search title → Episodes'
-  },
-  {
-    id: 'search-gif',
-    name: 'GIF Search',
-    cat: 'Search',
-    icon: 'gif',
-    fab: false,
-    color: '#fb923c',
-    desc: 'Search and download GIFs from Giphy and Tenor.',
-    link: 'search.html?type=gif',
-    badge: 'new',
-    section: 'Media',
-    usage: 'Search term → GIF results'
   },
 
   // ── MOVIES ─────────────────────────────────────────────────────────────────
@@ -381,19 +321,7 @@ const TOOLS = [
     section: 'Utility',
     usage: 'Paste URL → Short link'
   },
-  {
-    id: 'tool-qr',
-    name: 'QR Generator',
-    cat: 'Tools',
-    icon: 'qrcode',
-    fab: false,
-    color: '#4ade80',
-    desc: 'Generate QR codes from any text, URL or data instantly.',
-    link: 'tools.html?type=qr',
-    badge: 'new',
-    section: 'Utility',
-    usage: 'Enter data → QR code'
-  },
+
   {
     id: 'tool-telegram-stickers',
     name: 'Telegram Stickers',
@@ -429,32 +357,6 @@ const TOOLS = [
     link: 'tools.html?type=news',
     section: 'News',
     usage: 'Open → Latest Sri Lanka news'
-  },
-  {
-    id: 'tool-ip-lookup',
-    name: 'IP Lookup',
-    cat: 'Tools',
-    icon: 'location-crosshairs',
-    fab: false,
-    color: '#38bdf8',
-    desc: 'Find IP address info, location, ISP and more.',
-    link: 'tools.html?type=ip',
-    badge: 'new',
-    section: 'Network',
-    usage: 'Enter IP → Location & ISP'
-  },
-  {
-    id: 'tool-color-picker',
-    name: 'Color Picker',
-    cat: 'Tools',
-    icon: 'palette',
-    fab: false,
-    color: '#a78bfa',
-    desc: 'Pick colors and get HEX, RGB, HSL codes instantly.',
-    link: 'tools.html?type=color',
-    badge: 'new',
-    section: 'Design',
-    usage: 'Pick color → HEX / RGB / HSL'
   },
 {
   id: 'translator',
