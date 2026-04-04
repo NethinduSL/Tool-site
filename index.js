@@ -243,53 +243,14 @@ app.get('/api/auth/me', async (req, res) => {
   });
 });
 
-app.post('/api/tasks/use', requireDB, async (req, res) => {
-  try {
-    const ip = getClientIP(req);
-    const d  = today();
-
-    const user = await getSessionUser(req);
-    if (user && user.status !== 'blocked') return res.json({ ok: true, unlimited: true });
-
-    let rec = taskCache.get(ip);
-    if (!rec) {
-      const dbRec = await db.collection('tasks').findOne({ ip, date: d });
-      rec = dbRec ? dbRec : { ip, date: d, count: 0 };
-    }
-
-    if (rec.date !== d) { rec.date = d; rec.count = 0; }
-
-    if (rec.count >= DAILY_LIMIT) {
-      return res.json({ ok: false, limited: true, used: rec.count, limit: DAILY_LIMIT });
-    }
-
-    rec.count += 1;
-    taskCache.set(ip, rec);
-
-    db.collection('tasks').updateOne(
-      { ip, date: d },
-      { $inc: { count: 1 }, $setOnInsert: { createdAt: new Date() } },
-      { upsert: true }
-    ).catch(() => {});
-
-    res.json({ ok: true, used: rec.count, limit: DAILY_LIMIT, remaining: DAILY_LIMIT - rec.count });
-  } catch { res.json({ ok: true }); }
+app.post('/api/tasks/use', async (req, res) => {
+  // Unlimited mode — all users get unlimited access
+  res.json({ ok: true, unlimited: true });
 });
 
-app.get('/api/tasks/status', requireDB, async (req, res) => {
-  const ip = getClientIP(req);
-  const d  = today();
-
-  const user = await getSessionUser(req);
-  if (user) return res.json({ ok: true, unlimited: true });
-
-  let rec = taskCache.get(ip);
-  if (!rec) {
-    const dbRec = await db.collection('tasks').findOne({ ip, date: d });
-    if (dbRec) { rec = dbRec; taskCache.set(ip, rec); }
-  }
-  const used = (rec && rec.date === d) ? rec.count : 0;
-  res.json({ ok: true, used, limit: DAILY_LIMIT, remaining: Math.max(0, DAILY_LIMIT - used) });
+app.get('/api/tasks/status', async (req, res) => {
+  // Unlimited mode — all users get unlimited access
+  res.json({ ok: true, unlimited: true, used: 0, limit: 0, remaining: Infinity });
 });
 
 app.get('/api/stats', requireDB, async (req, res) => {
