@@ -2,8 +2,11 @@
  * tools.js — Central tool registry for Bit X Tools
  * 
  * HOW TO ADD A NEW TOOL:
- * 1. Create the tool's HTML file in /public/ (e.g., my-tool.html)
- * 2. Add a new entry to the TOOLS array below
+ * 1. Create the tool's HTML file in the correct subfolder under /public/
+ *    - AI tools    → /public/AI/
+ *    - Downloaders → /public/DOWNLOAD/
+ *    - Utilities   → /public/TOOL/
+ * 2. Add a new entry to the TOOLS array below with the correct folder prefix in `link`
  * 3. That's it! It will automatically appear on the homepage.
  *
  * TOOL OBJECT FIELDS:
@@ -30,7 +33,7 @@ const TOOLS = [
     fab: false,
     color: '#4f8ef7',
     desc: 'Chat with GPT-4o powered AI. Ask anything and get instant smart answers.',
-    link: 'ai-chat.html',
+    link: 'AI/ai-chat.html',
     badge: 'hot',
     section: 'Chat',
     usage: 'Type a message → Get AI answer'
@@ -43,7 +46,7 @@ const TOOLS = [
     fab: false,
     color: '#7c5cfc',
     desc: 'Powerful GPT-4 conversational AI for in-depth questions and responses.',
-    link: 'ai-chat.html?model=talkai',
+    link: 'AI/ai-chat.html?model=talkai',
     badge: 'ai',
     section: 'Chat',
     usage: 'Ask anything → Deep response'
@@ -56,7 +59,7 @@ const TOOLS = [
     fab: false,
     color: '#06b6d4',
     desc: 'Dolphin AI chat model — fast, uncensored, and helpful.',
-    link: 'ai-chat.html?model=dolphin',
+    link: 'AI/ai-chat.html?model=dolphin',
     badge: 'ai',
     section: 'Chat',
     usage: 'Chat freely → Instant reply'
@@ -69,7 +72,7 @@ const TOOLS = [
     fab: false,
     color: '#a855f7',
     desc: 'Claude AI by Anthropic — thoughtful, nuanced, and accurate.',
-    link: 'ai-chat.html?model=claude',
+    link: 'AI/ai-chat.html?model=claude',
     badge: 'ai',
     section: 'Chat',
     usage: 'Ask → Nuanced answer'
@@ -82,7 +85,7 @@ const TOOLS = [
     fab: false,
     color: '#fb923c',
     desc: 'Venice AI — privacy-first AI chat powered by open models.',
-    link: 'ai-chat.html?model=venice',
+    link: 'AI/ai-chat.html?model=venice',
     section: 'Chat',
     usage: 'Private chat → Open models'
   },
@@ -94,7 +97,7 @@ const TOOLS = [
     fab: false,
     color: '#f472b6',
     desc: 'Generate stunning images from text prompts using AI image models.',
-    link: 'ai-image.html',
+    link: 'AI/ai-image.html',
     badge: 'new',
     section: 'Image',
     usage: 'Type prompt → Generate image'
@@ -109,7 +112,7 @@ const TOOLS = [
     fab: true,
     color: '#ef4444',
     desc: 'Download YouTube videos as MP3 audio. Just paste the URL.',
-    link: 'downloader.html?type=ytmp3',
+    link: 'DOWNLOAD/downloader.html?type=ytmp3',
     badge: 'hot',
     section: 'Video',
     usage: 'Paste URL → Download MP3'
@@ -122,7 +125,7 @@ const TOOLS = [
     fab: true,
     color: '#e879f9',
     desc: 'Download TikTok videos without watermark instantly.',
-    link: 'downloader.html?type=tiktok',
+    link: 'DOWNLOAD/downloader.html?type=tiktok',
     badge: 'hot',
     section: 'Video',
     usage: 'Paste link → No watermark'
@@ -135,7 +138,7 @@ const TOOLS = [
     fab: true,
     color: '#f472b6',
     desc: 'Download Instagram photos, videos and reels easily.',
-    link: 'downloader.html?type=instagram',
+    link: 'DOWNLOAD/downloader.html?type=instagram',
     section: 'Social',
     usage: 'Paste post URL → Download'
   },
@@ -147,7 +150,7 @@ const TOOLS = [
     fab: true,
     color: '#4f8ef7',
     desc: 'Download Facebook videos in HD or SD quality.',
-    link: 'downloader.html?type=facebook',
+    link: 'DOWNLOAD/downloader.html?type=facebook',
     section: 'Social',
     usage: 'Paste video URL → HD/SD'
   },
@@ -160,7 +163,7 @@ const TOOLS = [
     fab: true,
     color: '#4ade80',
     desc: 'Download Spotify tracks as MP3 audio files.',
-    link: 'downloader.html?type=spotify',
+    link: 'DOWNLOAD/downloader.html?type=spotify',
     section: 'Music',
     usage: 'Paste Spotify link → MP3'
   },
@@ -172,7 +175,7 @@ const TOOLS = [
     fab: true,
     color: '#fb923c',
     desc: 'Download SoundCloud tracks and audio files.',
-    link: 'downloader.html?type=soundcloud',
+    link: 'DOWNLOAD/downloader.html?type=soundcloud',
     section: 'Music',
     usage: 'Paste track URL → Audio'
   },
@@ -184,7 +187,7 @@ const TOOLS = [
     fab: false,
     color: '#fbbf24',
     desc: 'Direct download from Mediafire links with one click.',
-    link: 'downloader.html?type=mediafire',
+    link: 'DOWNLOAD/downloader.html?type=mediafire',
     section: 'Files',
     usage: 'Paste Mediafire link → Download'
   },
@@ -239,7 +242,7 @@ const TOOLS = [
     fab: false,
     color: '#818cf8',
     desc: 'Find beautiful HD wallpapers by keyword from multiple sources.',
-    link: 'search.html?type=wallpaper',
+    link: 'DOWNLOAD/wallpaper.html',
     section: 'Images',
     usage: 'Search → HD wallpapers'
   },
@@ -251,7 +254,7 @@ const TOOLS = [
     fab: false,
     color: '#f472b6',
     desc: 'Search and discover anime series with episode info and links.',
-    link: 'search.html?type=anime',
+    link: 'DOWNLOAD/wallpaper.html?type=anime',
     section: 'Anime',
     usage: 'Search title → Episodes'
   },
@@ -265,7 +268,7 @@ const TOOLS = [
     fab: false,
     color: '#a855f7',
     desc: 'Search Sinhala-dubbed movies and find download links.',
-    link: 'movies.html',
+    link: 'DOWNLOAD/movies.html',
     section: 'Sinhala',
     usage: 'Search title → Download'
   },
@@ -277,7 +280,7 @@ const TOOLS = [
     fab: false,
     color: '#7c5cfc',
     desc: 'Download movies from Sinhalasub.lk with all quality options.',
-    link: 'movies.html?tab=sinsub',
+    link: 'DOWNLOAD/movies.html?tab=sinsub',
     section: 'Sinhala',
     usage: 'Search → All quality options'
   },
@@ -289,7 +292,7 @@ const TOOLS = [
     fab: false,
     color: '#fb923c',
     desc: 'Search movie and TV trailers from YouTube.',
-    link: 'movies.html?tab=trailers',
+    link: 'DOWNLOAD/movies.html?tab=trailers',
     badge: 'new',
     section: 'Trailers',
     usage: 'Movie name → Watch trailer'
@@ -304,7 +307,7 @@ const TOOLS = [
     fab: false,
     color: '#fbbf24',
     desc: 'Get real-time weather data for any city worldwide.',
-    link: 'tools.html?type=weather',
+    link: 'TOOL/tools.html?type=weather',
     badge: 'new',
     section: 'Info',
     usage: 'Enter city → Live weather'
@@ -317,7 +320,7 @@ const TOOLS = [
     fab: false,
     color: '#4f8ef7',
     desc: 'Shorten long URLs instantly using l8.lk.',
-    link: 'tools.html?type=shorten',
+    link: 'TOOL/tools.html?type=shorten',
     section: 'Utility',
     usage: 'Paste URL → Short link'
   },
@@ -330,7 +333,7 @@ const TOOLS = [
     fab: false,
     color: '#34d399',
     desc: 'Download Telegram sticker packs by entering the pack name.',
-    link: 'tools.html?type=stickers',
+    link: 'TOOL/tools.html?type=stickers',
     section: 'Social',
     usage: 'Pack name → Download all'
   },
@@ -342,7 +345,7 @@ const TOOLS = [
     fab: false,
     color: '#f472b6',
     desc: 'Search and download Sinhala songs by name.',
-    link: 'tools.html?type=sinsong',
+    link: 'TOOL/tools.html?type=sinsong',
     section: 'Music',
     usage: 'Search song → Download'
   },
@@ -354,7 +357,7 @@ const TOOLS = [
     fab: false,
     color: '#fb923c',
     desc: 'Latest news from Daily Mirror Sri Lanka.',
-    link: 'tools.html?type=news',
+    link: 'TOOL/tools.html?type=news',
     section: 'News',
     usage: 'Open → Latest Sri Lanka news'
   },
@@ -366,8 +369,8 @@ const TOOLS = [
   fab: false,
   color: '#4f8ef7', 
   desc: 'Translate text instantly between multiple languages',
-  link: 'translator.html',
-  badge: 'Tools',
+  link: 'TOOL/translator.html',
+  badge: 'new',
   section: 'Utility',
   usage: 'Enter text → Choose language → Get translation'
     }
