@@ -1,199 +1,171 @@
-const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb');
-const crypto = require('crypto');
-const path = require('path');
-const NodeCache = require('node-cache');
+// ============================================================
+// BitX Tools Server — index.js  (Mongoose + node-cache optimized)
+// Rebuilt to match the API site's database management pattern
+// ============================================================
+
+const express    = require('express');
+const mongoose   = require('mongoose');
+const crypto     = require('crypto');
+const path       = require('path');
+const fs         = require('fs');
+const NodeCache  = require('node-cache');
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const MONGO_URI = 'mongodb+srv://eboxdatabase_db_user:DIAuQx90bGgxK9KR@cluster0.x98xn7f.mongodb.net/?appName=Cluster0&retryWrites=true&w=majority';
-const DB_NAME = 'bitxtools';
-const DAILY_LIMIT = 400;
-const SYNC_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+// ─── CONFIG ──────────────────────────────────────────────────
+const MONGO_URI    = 'mongodb+srv://eboxdatabase_db_user:DIAuQx90bGgxK9KR@cluster0.x98xn7f.mongodb.net/bitxtools?retryWrites=true&w=majority&appName=Cluster0';
+const DAILY_LIMIT  = 400;
+const START_TIME   = Date.now();
 
 const ADMINS = [
   { username: 'Nethindu', password: 'EBOX@n2009' },
   { username: 'Jithula',  password: 'Jithula123' }
 ];
 
-// ── CACHE SETUP ───────────────────────────────────────────────────────────────
-const cache = new NodeCache({ stdTTL: 0, checkperiod: 30 });
-const dirtyKeys = new Set(); // tracks what has changed but not yet flushed to DB
+// ─── CACHE INSTANCES ─────────────────────────────────────────
+// userCache: keyed by session token, TTL 60s
+const userCache    = new NodeCache({ stdTTL: 60,  checkperiod: 30,  useClones: false });
+// taskCache: keyed by IP, TTL 90s (daily rate-limit records)
+const taskCache    = new NodeCache({ stdTTL: 90,  checkperiod: 45,  useClones: false });
+// statsCache: TTL 30s — dashboards stay fresh without hammering DB
+const statsCache   = new NodeCache({ stdTTL: 30,  checkperiod: 15,  useClones: false });
+// adminCache: TTL 15s — admin data changes often
+const adminCache   = new NodeCache({ stdTTL: 15,  checkperiod: 10,  useClones: false });
+// toolsCache: TTL 120s — tool list/settings
+const toolsCache   = new NodeCache({ stdTTL: 120, checkperiod: 60,  useClones: false });
+// adminTokenCache: keyed by token, TTL 3600s (1 hour)
+const adminTokenCache = new NodeCache({ stdTTL: 3600, checkperiod: 300, useClones: false });
 
-const TTL = { tools: 120, stats: 120, adminStats: 120 };
-const START_TIME = Date.now();
-let db = null;
-let mongoClient = null;
+// ─── MongoDB Connection ───────────────────────────────────────
+mongoose.connect(MONGO_URI, {
+  maxPoolSize:              20,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS:          45000,
+})
+  .then(() => console.log('✅ MongoDB Connected'))
+  .catch(err => console.error('❌ MongoDB Error:', err));
 
-// ── DB CONNECT ────────────────────────────────────────────────────────────────
-async function connectDB() {
-  mongoClient = new MongoClient(MONGO_URI, {
-    maxPoolSize: 10, minPoolSize: 2,
-    serverSelectionTimeoutMS: 8000, connectTimeoutMS: 10000,
-    socketTimeoutMS: 30000, heartbeatFrequencyMS: 10000,
-  });
-  await mongoClient.connect();
-  db = mongoClient.db(DB_NAME);
-  console.log('✅ MongoDB connected');
+// ─── Schemas ──────────────────────────────────────────────────
+const userSchema = new mongoose.Schema({
+  username:    { type: String, unique: true, required: true, lowercase: true },
+  displayName: { type: String, default: '' },
+  email:       { type: String, unique: true, required: true, lowercase: true },
+  password:    { type: String, required: true },
+  role:        { type: String, enum: ['user', 'admin'], default: 'user' },
+  status:      { type: String, enum: ['active', 'blocked'], default: 'active' },
+  createdAt:   { type: Date, default: Date.now },
+  lastSeen:    { type: Date, default: Date.now }
+});
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
 
-  await Promise.all([
-    db.collection('users').createIndex({ email: 1 }, { unique: true }),
-    db.collection('users').createIndex({ username: 1 }, { unique: true }),
-    db.collection('sessions').createIndex({ token: 1 }),
-    db.collection('sessions').createIndex({ createdAt: 1 }, { expireAfterSeconds: 604800 }),
-    db.collection('visits').createIndex({ date: 1 }, { unique: true }),
-    db.collection('tasks').createIndex({ ip: 1, date: 1 }),
-  ]);
+const sessionSchema = new mongoose.Schema({
+  token:     { type: String, required: true, unique: true },
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  admin:     { type: Boolean, default: false },
+  username:  { type: String, default: '' },   // only set for admin sessions
+  createdAt: { type: Date, default: Date.now, expires: 604800 }  // auto-expire after 7 days
+});
+sessionSchema.index({ token: 1 });
 
-  await warmCache();
-  setInterval(syncDirtyToDB, SYNC_INTERVAL_MS);
-  console.log('🔄 Cache sync started — every 2 minutes');
-}
+const visitSchema = new mongoose.Schema({
+  date:  { type: String, unique: true },
+  count: { type: Number, default: 0 }
+});
+visitSchema.index({ date: 1 });
 
-function watchConnection() {
-  if (!mongoClient) return;
-  mongoClient.on('close', () => {
-    console.warn('⚠️  MongoDB connection closed — reconnecting...');
-    db = null;
-    setTimeout(() => connectDB().catch(console.error), 3000);
-  });
-}
+const taskSchema = new mongoose.Schema({
+  ip:        { type: String },
+  date:      { type: String },
+  count:     { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+taskSchema.index({ ip: 1, date: 1 });
 
-function requireDB(req, res, next) {
-  if (!db) return res.status(503).json({ ok: false, error: 'Database not ready yet, please retry in a moment.' });
-  next();
-}
+const toolSettingSchema = new mongoose.Schema({
+  toolId:  { type: String, unique: true },
+  enabled: { type: Boolean, default: true }
+});
+toolSettingSchema.index({ toolId: 1 });
 
-// ── CACHE WARM ────────────────────────────────────────────────────────────────
-async function warmCache() {
-  if (!db) return;
-  try {
-    const today = getToday();
-    const [users, sessions, visits, tasks, toolSettings] = await Promise.all([
-      db.collection('users').find({}, { projection: { password: 0 } }).toArray(),
-      db.collection('sessions').find({}).toArray(),
-      db.collection('visits').find({}).toArray(),
-      db.collection('tasks').find({ date: today }).toArray(),
-      db.collection('tool_settings').find({}).toArray(),
-    ]);
-    cache.set('db:users', users);
-    cache.set('db:sessions', sessions);
-    cache.set('db:visits', visits);
-    cache.set('db:tasks:today', tasks);
-    cache.set('db:tool_settings', toolSettings);
-    cache.del('public_stats');
-    cache.del('admin_stats');
-    console.log('✅ Cache warmed —', users.length, 'users,', sessions.length, 'sessions,', visits.length, 'visit days');
-  } catch (e) { console.error('Cache warm error:', e.message); }
-}
+const User        = mongoose.model('User', userSchema);
+const Session     = mongoose.model('Session', sessionSchema);
+const Visit       = mongoose.model('Visit', visitSchema);
+const Task        = mongoose.model('Task', taskSchema);
+const ToolSetting = mongoose.model('ToolSetting', toolSettingSchema);
 
-// ── SYNC DIRTY KEYS → DB (every 2 minutes) ────────────────────────────────────
-async function syncDirtyToDB() {
-  if (!db || dirtyKeys.size === 0) return;
-  const keys = [...dirtyKeys];
-  dirtyKeys.clear();
-  console.log('🔄 Syncing to DB:', keys);
-
-  for (const key of keys) {
-    try {
-      if (key === 'db:tool_settings') {
-        const settings = cache.get('db:tool_settings') || [];
-        for (const s of settings) {
-          await db.collection('tool_settings').updateOne(
-            { toolId: s.toolId }, { $set: s }, { upsert: true }
-          );
-        }
-      }
-      if (key === 'db:visits') {
-        const visits = cache.get('db:visits') || [];
-        for (const v of visits) {
-          await db.collection('visits').updateOne(
-            { date: v.date }, { $set: { count: v.count } }, { upsert: true }
-          );
-        }
-      }
-      if (key === 'db:tasks:today') {
-        const tasks = cache.get('db:tasks:today') || [];
-        const today = getToday();
-        for (const t of tasks) {
-          await db.collection('tasks').updateOne(
-            { ip: t.ip, date: today },
-            { $set: { count: t.count, createdAt: t.createdAt || new Date() } },
-            { upsert: true }
-          );
-        }
-      }
-    } catch (e) {
-      console.error('Sync error for [' + key + ']:', e.message);
-      dirtyKeys.add(key); // re-queue on failure
-    }
-  }
-
-  // Re-fetch from DB after sync to keep cache fresh
-  await warmCache();
-}
-
-function markDirty(key) { dirtyKeys.add(key); }
-
-// ── HELPERS ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────
 function hashPass(p) { return crypto.createHash('sha256').update(p + 'bitx_salt_2025').digest('hex'); }
 function genToken() { return crypto.randomBytes(32).toString('hex'); }
-function getToday() { return new Date().toISOString().slice(0, 10); }
+function today()    { return new Date().toISOString().slice(0, 10); }
 function getClientIP(req) {
-  return (req.headers['x-forwarded-for'] || req.connection?.remoteAddress || '').split(',')[0].trim();
+  return (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim() || 'unknown';
 }
 
+// ─── Cache invalidation helpers ───────────────────────────────
+function invalidateUser(token) { if (token) userCache.del(token); }
+function invalidateAdminCache() { adminCache.flushAll(); }
+function bustToolsCache() { toolsCache.del('tools_list'); toolsCache.del('tools_settings'); }
+
+// ─── Track Visit (fire-and-forget) ───────────────────────────
+function trackVisit() {
+  const d = today();
+  Visit.findOneAndUpdate({ date: d }, { $inc: { count: 1 } }, { upsert: true }).exec().catch(() => {});
+  statsCache.del('publicStats');
+  statsCache.del('adminStats');
+}
+
+// ─── Session resolution ───────────────────────────────────────
 async function getSessionUser(req) {
-  const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim() || req.query._token || '';
+  const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim()
+             || req.query._token || '';
   if (!token) return null;
-  const sessions = cache.get('db:sessions') || [];
-  const session = sessions.find(s => s.token === token && !s.admin);
+
+  // Check cache first
+  let user = userCache.get(token);
+  if (user) return user;
+
+  // Fallback to DB
+  const session = await Session.findOne({ token, admin: { $ne: true } });
   if (!session) return null;
-  const users = cache.get('db:users') || [];
-  return users.find(u => String(u._id) === String(session.userId)) || null;
+
+  user = await User.findById(session.userId).select('-password');
+  if (!user) return null;
+
+  userCache.set(token, user);
+  return user;
 }
 
-function recordVisit() {
-  const today = getToday();
-  const visits = cache.get('db:visits') || [];
-  const idx = visits.findIndex(v => v.date === today);
-  if (idx >= 0) visits[idx].count = (visits[idx].count || 0) + 1;
-  else visits.push({ date: today, count: 1 });
-  cache.set('db:visits', visits);
-  markDirty('db:visits');
-  cache.del('public_stats');
-  cache.del('admin_stats');
-}
-
-// ── MIDDLEWARE ────────────────────────────────────────────────────────────────
+// ─── Visit Middleware ─────────────────────────────────────────
 app.use((req, res, next) => {
-  if (req.path === '/' || req.path === '/index.html') { try { recordVisit(); } catch {} }
+  if (req.path === '/' || req.path === '/index.html') { try { trackVisit(); } catch {} }
   next();
 });
 
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
 app.get('/index.html', (req, res) => res.redirect(301, '/'));
 
-// ── TOOLS ─────────────────────────────────────────────────────────────────────
+// ─── TOOLS ────────────────────────────────────────────────────
 function loadToolsModule() {
   const toolsPath = path.join(__dirname, 'public', 'tools.js');
   delete require.cache[toolsPath];
   return require(toolsPath).TOOLS;
 }
 
-app.get('/api/tools/list', (req, res) => {
+app.get('/api/tools/list', async (req, res) => {
   try {
-    const cached = cache.get('tools_list');
+    const cached = toolsCache.get('tools_list');
     if (cached) return res.json({ ok: true, tools: cached, cached: true });
+
     const TOOLS = loadToolsModule();
-    const toolSettings = cache.get('db:tool_settings') || [];
-    const disabledSet = new Set(toolSettings.filter(s => s.enabled === false).map(s => s.toolId));
+    const settings = await ToolSetting.find({});
+    const disabledSet = new Set(settings.filter(s => s.enabled === false).map(s => s.toolId));
     const tools = TOOLS.map(t => ({ ...t, enabled: !disabledSet.has(t.id) }));
-    cache.set('tools_list', tools, TTL.tools);
+
+    toolsCache.set('tools_list', tools);
     res.json({ ok: true, tools, cached: false });
   } catch (e) {
     try {
@@ -203,73 +175,71 @@ app.get('/api/tools/list', (req, res) => {
   }
 });
 
-function bustToolsCache() { cache.del('tools_list'); }
+app.get('/api/tools/settings', async (req, res) => {
+  try {
+    const cached = toolsCache.get('tools_settings');
+    if (cached) return res.json({ ok: true, disabled: cached, cached: true });
 
-app.get('/api/tools/settings', (req, res) => {
-  const toolSettings = cache.get('db:tool_settings') || [];
-  res.json({ ok: true, disabled: toolSettings.filter(s => s.enabled === false).map(s => s.toolId) });
+    const settings = await ToolSetting.find({ enabled: false });
+    const disabled = settings.map(s => s.toolId);
+
+    toolsCache.set('tools_settings', disabled);
+    res.json({ ok: true, disabled, cached: false });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-app.post('/api/auth/register', requireDB, async (req, res) => {
+// ─── AUTH ─────────────────────────────────────────────────────
+app.post('/api/auth/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password) return res.json({ ok: false, error: 'All fields required' });
     if (password.length < 6) return res.json({ ok: false, error: 'Password must be 6+ characters' });
 
-    const usersCache = cache.get('db:users') || [];
-    if (usersCache.find(u => u.email === email.toLowerCase() || u.username === username.toLowerCase()))
-      return res.json({ ok: false, error: 'Username or email already taken' });
+    const exists = await User.findOne({ $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }] });
+    if (exists) return res.json({ ok: false, error: 'Username or email already taken' });
 
-    const user = {
+    const user = await User.create({
       username: username.toLowerCase(), displayName: username,
-      email: email.toLowerCase(), password: hashPass(password),
-      role: 'user', status: 'active', createdAt: new Date(), lastSeen: new Date()
-    };
-    const result = await db.collection('users').insertOne(user);
-    user._id = result.insertedId;
-
-    // Update users cache (without password)
-    const { password: _, ...safeUser } = user;
-    usersCache.push(safeUser);
-    cache.set('db:users', usersCache);
+      email: email.toLowerCase(), password: hashPass(password)
+    });
+    invalidateAdminCache();
 
     const token = genToken();
-    await db.collection('sessions').insertOne({ token, userId: result.insertedId, createdAt: new Date() });
-    const sessions = cache.get('db:sessions') || [];
-    sessions.push({ token, userId: result.insertedId, createdAt: new Date() });
-    cache.set('db:sessions', sessions);
+    const session = await Session.create({ token, userId: user._id });
 
-    res.json({ ok: true, token, user: { id: result.insertedId, username: user.username, displayName: user.displayName, email: user.email, role: user.role } });
+    res.json({
+      ok: true, token,
+      user: { id: user._id, username: user.username, displayName: user.displayName, email: user.email, role: user.role }
+    });
   } catch (e) { console.error(e); res.json({ ok: false, error: 'Registration failed' }); }
 });
 
-app.post('/api/auth/login', requireDB, async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) return res.json({ ok: false, error: 'Fields required' });
 
-    // Always verify password directly against DB for security
-    const dbUser = await db.collection('users').findOne({
+    const dbUser = await User.findOne({
       $or: [{ email: username.toLowerCase() }, { username: username.toLowerCase() }]
     });
     if (!dbUser || dbUser.password !== hashPass(password)) return res.json({ ok: false, error: 'Invalid credentials' });
     if (dbUser.status === 'blocked') return res.json({ ok: false, error: 'Account blocked. Contact support.' });
 
     const token = genToken();
-    await db.collection('sessions').insertOne({ token, userId: dbUser._id, createdAt: new Date() });
+    await Session.create({ token, userId: dbUser._id });
 
-    const sessions = cache.get('db:sessions') || [];
-    sessions.push({ token, userId: dbUser._id, createdAt: new Date() });
-    cache.set('db:sessions', sessions);
+    // Update lastSeen (fire-and-forget)
+    User.findByIdAndUpdate(dbUser._id, { lastSeen: new Date() }).exec().catch(() => {});
 
-    await db.collection('users').updateOne({ _id: dbUser._id }, { $set: { lastSeen: new Date() } });
-    const usersCache = cache.get('db:users') || [];
-    const idx = usersCache.findIndex(u => String(u._id) === String(dbUser._id));
-    if (idx >= 0) usersCache[idx].lastSeen = new Date();
-    cache.set('db:users', usersCache);
+    // Warm user into cache for this token
+    const safeUser = { ...dbUser.toObject() };
+    delete safeUser.password;
+    userCache.set(token, safeUser);
 
-    res.json({ ok: true, token, user: { id: dbUser._id, username: dbUser.username, displayName: dbUser.displayName, email: dbUser.email, role: dbUser.role } });
+    res.json({
+      ok: true, token,
+      user: { id: dbUser._id, username: dbUser.username, displayName: dbUser.displayName, email: dbUser.email, role: dbUser.role }
+    });
   } catch (e) { console.error(e); res.json({ ok: false, error: 'Login failed' }); }
 });
 
@@ -277,9 +247,8 @@ app.post('/api/auth/logout', async (req, res) => {
   try {
     const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
     if (token) {
-      const sessions = (cache.get('db:sessions') || []).filter(s => s.token !== token);
-      cache.set('db:sessions', sessions);
-      if (db) await db.collection('sessions').deleteOne({ token });
+      invalidateUser(token);
+      Session.deleteOne({ token }).exec().catch(() => {});
     }
   } catch {}
   res.json({ ok: true });
@@ -288,76 +257,105 @@ app.post('/api/auth/logout', async (req, res) => {
 app.get('/api/auth/me', async (req, res) => {
   const user = await getSessionUser(req);
   if (!user) return res.json({ ok: false });
-  res.json({ ok: true, user: { id: user._id, username: user.username, displayName: user.displayName, email: user.email, role: user.role } });
+  res.json({
+    ok: true,
+    user: { id: user._id, username: user.username, displayName: user.displayName, email: user.email, role: user.role }
+  });
 });
 
-// ── TASKS / RATE LIMIT ────────────────────────────────────────────────────────
+// ─── TASKS / RATE LIMIT ───────────────────────────────────────
 app.post('/api/tasks/use', async (req, res) => {
   try {
-    const ip = getClientIP(req); const today = getToday();
+    const ip = getClientIP(req);
+    const d  = today();
+
     const user = await getSessionUser(req);
     if (user && user.status !== 'blocked') return res.json({ ok: true, unlimited: true });
 
-    const tasks = cache.get('db:tasks:today') || [];
-    const rec = tasks.find(t => t.ip === ip && t.date === today);
-    const used = rec ? rec.count : 0;
-    if (used >= DAILY_LIMIT) return res.json({ ok: false, limited: true, used, limit: DAILY_LIMIT });
+    // Check task cache first
+    let rec = taskCache.get(ip);
 
-    if (rec) rec.count = used + 1;
-    else tasks.push({ ip, date: today, count: 1, createdAt: new Date() });
-    cache.set('db:tasks:today', tasks);
-    markDirty('db:tasks:today');
+    if (!rec) {
+      rec = await Task.findOne({ ip, date: d });
+      if (!rec) rec = { ip, date: d, count: 0 };
+      else rec = rec.toObject();
+    }
 
-    res.json({ ok: true, used: used + 1, limit: DAILY_LIMIT, remaining: DAILY_LIMIT - used - 1 });
+    // Reset if it's a new day
+    if (rec.date !== d) { rec.date = d; rec.count = 0; }
+
+    if (rec.count >= DAILY_LIMIT) {
+      return res.json({ ok: false, limited: true, used: rec.count, limit: DAILY_LIMIT });
+    }
+
+    rec.count += 1;
+    taskCache.set(ip, rec);
+
+    // Persist to DB (fire-and-forget)
+    Task.findOneAndUpdate(
+      { ip, date: d },
+      { $inc: { count: 1 }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    ).exec().catch(() => {});
+
+    res.json({ ok: true, used: rec.count, limit: DAILY_LIMIT, remaining: DAILY_LIMIT - rec.count });
   } catch { res.json({ ok: true }); }
 });
 
 app.get('/api/tasks/status', async (req, res) => {
-  const ip = getClientIP(req); const today = getToday();
+  const ip = getClientIP(req);
+  const d  = today();
+
   const user = await getSessionUser(req);
   if (user) return res.json({ ok: true, unlimited: true });
-  const tasks = cache.get('db:tasks:today') || [];
-  const rec = tasks.find(t => t.ip === ip && t.date === today);
-  const used = rec ? rec.count : 0;
+
+  let rec = taskCache.get(ip);
+  if (!rec) {
+    rec = await Task.findOne({ ip, date: d });
+    if (rec) { rec = rec.toObject(); taskCache.set(ip, rec); }
+  }
+  const used = (rec && rec.date === d) ? rec.count : 0;
   res.json({ ok: true, used, limit: DAILY_LIMIT, remaining: Math.max(0, DAILY_LIMIT - used) });
 });
 
-// ── PUBLIC STATS ──────────────────────────────────────────────────────────────
-app.get('/api/stats', (req, res) => {
+// ─── PUBLIC STATS ─────────────────────────────────────────────
+app.get('/api/stats', async (req, res) => {
   try {
     const s = Math.floor((Date.now() - START_TIME) / 1000);
     const uptime = `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 
-    const cached = cache.get('public_stats');
+    const cached = statsCache.get('publicStats');
     if (cached) return res.json({ ...cached, uptime, cached: true });
 
-    const visits = cache.get('db:visits') || [];
-    const users  = cache.get('db:users')  || [];
-    const today  = getToday();
-    const todayV = visits.find(v => v.date === today);
-    const total  = visits.reduce((s, v) => s + (v.count || 0), 0);
+    const d = today();
+    const [todayVisit, totalVisitsAgg, totalUsers] = await Promise.all([
+      Visit.findOne({ date: d }),
+      Visit.aggregate([{ $group: { _id: null, total: { $sum: '$count' } } }]),
+      User.countDocuments({})
+    ]);
 
-    const data = { ok: true, todayVisits: todayV?.count || 0, totalVisits: total, totalUsers: users.length };
-    cache.set('public_stats', data, TTL.stats);
+    const data = {
+      ok: true,
+      todayVisits:  todayVisit?.count || 0,
+      totalVisits:  totalVisitsAgg[0]?.total || 0,
+      totalUsers
+    };
+    statsCache.set('publicStats', data);
     res.json({ ...data, uptime, cached: false });
   } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
-// ── ADMIN LOGIN ───────────────────────────────────────────────────────────────
+// ─── ADMIN AUTH ───────────────────────────────────────────────
 app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;
   const match = ADMINS.find(a => a.username === username && a.password === password);
   if (!match) return res.json({ ok: false, error: 'Invalid admin credentials' });
 
   const token = genToken();
-  cache.set(`admin_token:${token}`, match.username, 3600);
+  adminTokenCache.set(token, match.username);
 
-  if (db) {
-    await db.collection('sessions').insertOne({ token, admin: true, username: match.username, createdAt: new Date() });
-    const sessions = cache.get('db:sessions') || [];
-    sessions.push({ token, admin: true, username: match.username, createdAt: new Date() });
-    cache.set('db:sessions', sessions);
-  }
+  // Persist admin session to DB (fire-and-forget)
+  Session.create({ token, admin: true, username: match.username }).catch(() => {});
 
   res.json({ ok: true, token, username: match.username, message: `Welcome, ${match.username}!` });
 });
@@ -366,62 +364,80 @@ async function adminOnly(req, res, next) {
   const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
   if (!token) return res.status(401).json({ ok: false, error: 'Unauthorized' });
 
-  const cachedAdmin = cache.get(`admin_token:${token}`);
-  if (cachedAdmin) { req.adminUsername = cachedAdmin; return next(); }
+  // 1. Check in-memory admin token cache (fastest)
+  const cached = adminTokenCache.get(token);
+  if (cached) { req.adminUsername = cached; return next(); }
 
-  const sessions = cache.get('db:sessions') || [];
-  const session = sessions.find(s => s.token === token && s.admin === true);
-  if (session) { req.adminUsername = session.username; return next(); }
+  // 2. Fallback to DB session
+  const session = await Session.findOne({ token, admin: true });
+  if (!session) return res.status(401).json({ ok: false, error: 'Unauthorized' });
 
-  if (!db) return res.status(503).json({ ok: false, error: 'Database not ready' });
-  const dbSession = await db.collection('sessions').findOne({ token, admin: true });
-  if (!dbSession) return res.status(401).json({ ok: false, error: 'Unauthorized' });
-  req.adminUsername = dbSession.username;
+  adminTokenCache.set(token, session.username); // warm for next request
+  req.adminUsername = session.username;
   next();
 }
 
-app.get('/api/admin/users', adminOnly, (req, res) => {
-  const users = (cache.get('db:users') || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.json({ ok: true, users });
+// ─── ADMIN ROUTES ─────────────────────────────────────────────
+app.get('/api/admin/users', adminOnly, async (req, res) => {
+  try {
+    const cacheKey = 'adminUsers';
+    const cached = adminCache.get(cacheKey);
+    if (cached) return res.json({ ok: true, users: cached, cached: true });
+
+    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    adminCache.set(cacheKey, users);
+    res.json({ ok: true, users, cached: false });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
 app.post('/api/admin/users/:id/block', adminOnly, async (req, res) => {
-  const { status } = req.body;
-  const users = cache.get('db:users') || [];
-  const idx = users.findIndex(u => String(u._id) === req.params.id);
-  if (idx >= 0) users[idx].status = status;
-  cache.set('db:users', users);
-  if (db) await db.collection('users').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status } });
-  res.json({ ok: true });
+  try {
+    const { status } = req.body;
+    await User.findByIdAndUpdate(req.params.id, { status });
+    // Evict cached sessions for this user
+    Session.find({ userId: req.params.id }).then(sessions => {
+      sessions.forEach(s => invalidateUser(s.token));
+    }).catch(() => {});
+    invalidateAdminCache();
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
 app.delete('/api/admin/users/:id', adminOnly, async (req, res) => {
-  const users = (cache.get('db:users') || []).filter(u => String(u._id) !== req.params.id);
-  cache.set('db:users', users);
-  if (db) await db.collection('users').deleteOne({ _id: new ObjectId(req.params.id) });
-  res.json({ ok: true });
+  try {
+    // Remove user sessions from cache
+    const sessions = await Session.find({ userId: req.params.id });
+    sessions.forEach(s => invalidateUser(s.token));
+    await Session.deleteMany({ userId: req.params.id });
+
+    await User.findByIdAndDelete(req.params.id);
+    invalidateAdminCache();
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
 app.post('/api/admin/emergency-reset', adminOnly, async (req, res) => {
   try {
-    cache.set('db:sessions', []);
-    cache.set('db:tasks:today', []);
-    cache.del('public_stats');
-    cache.del('admin_stats');
-    dirtyKeys.clear();
-    if (db) {
-      await db.collection('sessions').deleteMany({});
-      await db.collection('tasks').deleteMany({ date: getToday() });
-    }
+    // Flush all caches
+    userCache.flushAll();
+    taskCache.flushAll();
+    statsCache.flushAll();
+    adminCache.flushAll();
+
+    await Promise.all([
+      Session.deleteMany({ admin: { $ne: true } }),
+      Task.deleteMany({ date: today() })
+    ]);
+
     res.json({ ok: true, message: 'All sessions cleared and daily task counts reset.' });
   } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
-app.get('/api/admin/tools', adminOnly, (req, res) => {
+app.get('/api/admin/tools', adminOnly, async (req, res) => {
   try {
     const TOOLS = loadToolsModule();
-    const toolSettings = cache.get('db:tool_settings') || [];
-    const settingsMap = Object.fromEntries(toolSettings.map(s => [s.toolId, s]));
+    const settings = await ToolSetting.find({});
+    const settingsMap = Object.fromEntries(settings.map(s => [s.toolId, s]));
     const tools = TOOLS.map(t => ({
       toolId: t.id, name: t.name, cat: t.cat, icon: t.icon, fab: t.fab, color: t.color, link: t.link,
       enabled: settingsMap[t.id] ? settingsMap[t.id].enabled !== false : true
@@ -430,67 +446,82 @@ app.get('/api/admin/tools', adminOnly, (req, res) => {
   } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
-app.post('/api/admin/tools/:toolId', adminOnly, (req, res) => {
-  const { toolId } = req.params;
-  const enabled = !!req.body.enabled;
-  const toolSettings = cache.get('db:tool_settings') || [];
-  const idx = toolSettings.findIndex(s => s.toolId === toolId);
-  if (idx >= 0) toolSettings[idx].enabled = enabled;
-  else toolSettings.push({ toolId, enabled });
-  cache.set('db:tool_settings', toolSettings);
-  markDirty('db:tool_settings');
-  bustToolsCache();
-  res.json({ ok: true });
+app.post('/api/admin/tools/:toolId', adminOnly, async (req, res) => {
+  try {
+    const { toolId } = req.params;
+    const enabled = !!req.body.enabled;
+    await ToolSetting.findOneAndUpdate({ toolId }, { enabled }, { upsert: true, new: true });
+    bustToolsCache();
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
-// ── ADMIN STATS — pure cache, zero DB queries ─────────────────────────────────
-app.get('/api/admin/stats', adminOnly, (req, res) => {
+app.get('/api/admin/stats', adminOnly, async (req, res) => {
   try {
     const s = Math.floor((Date.now() - START_TIME) / 1000);
     const uptime = `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 
-    const cached = cache.get('admin_stats');
+    const cacheKey = 'adminStats';
+    const cached = adminCache.get(cacheKey);
     if (cached) return res.json({ ...cached, uptime, cached: true });
 
-    const users  = cache.get('db:users')       || [];
-    const visits = cache.get('db:visits')      || [];
-    const tasks  = cache.get('db:tasks:today') || [];
-    const today  = getToday();
+    const d = today();
 
-    const last7 = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const date = d.toISOString().slice(0, 10);
-      const v = visits.find(x => x.date === date);
-      last7.push({ date, count: v?.count || 0 });
-    }
+    // Build last 7 days date array
+    const last7Dates = Array.from({ length: 7 }, (_, i) => {
+      const dt = new Date(); dt.setDate(dt.getDate() - (6 - i));
+      return dt.toISOString().slice(0, 10);
+    });
+
+    const [totalUsers, activeUsers, blockedUsers, visits, todayTasks, totalVisitsAgg] = await Promise.all([
+      User.countDocuments({}),
+      User.countDocuments({ status: 'active' }),
+      User.countDocuments({ status: 'blocked' }),
+      Visit.find({ date: { $in: last7Dates } }),
+      Task.aggregate([{ $match: { date: d } }, { $group: { _id: null, total: { $sum: '$count' } } }]),
+      Visit.aggregate([{ $group: { _id: null, total: { $sum: '$count' } } }])
+    ]);
+
+    const visitMap = Object.fromEntries(visits.map(v => [v.date, v.count]));
+    const last7 = last7Dates.map(date => ({ date, count: visitMap[date] || 0 }));
 
     const data = {
       ok: true,
-      totalUsers:   users.length,
-      activeUsers:  users.filter(u => u.status === 'active').length,
-      blockedUsers: users.filter(u => u.status === 'blocked').length,
-      todayVisits:  (visits.find(v => v.date === today))?.count || 0,
-      totalVisits:  visits.reduce((s, v) => s + (v.count || 0), 0),
-      todayTasks:   tasks.reduce((s, t) => s + (t.count || 0), 0),
-      uptimeMs: Date.now() - START_TIME,
+      totalUsers, activeUsers, blockedUsers,
+      todayVisits:  visitMap[d] || 0,
+      totalVisits:  totalVisitsAgg[0]?.total || 0,
+      todayTasks:   todayTasks[0]?.total || 0,
+      uptimeMs:     Date.now() - START_TIME,
       last7
     };
-    cache.set('admin_stats', data, TTL.adminStats);
+    adminCache.set(cacheKey, data);
     res.json({ ...data, uptime, cached: false });
   } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
+// ─── VERCEL STATUS ────────────────────────────────────────────
+app.get('/api/status', (req, res) => {
+  res.json({
+    status:    'READY',
+    region:    process.env.VERCEL_REGION         || 'unknown',
+    env:       process.env.VERCEL_ENV            || 'production',
+    gitBranch: process.env.VERCEL_GIT_COMMIT_REF || 'main',
+    nodeVer:   process.version,
+    uptime:    process.uptime()
+  });
+});
+
+// ─── PAGES ────────────────────────────────────────────────────
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// ── START ─────────────────────────────────────────────────────────────────────
+// ─── START ────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-connectDB().then(() => {
-  watchConnection();
-  app.listen(PORT, () => console.log('🚀 Server running on port', PORT));
-}).catch(err => {
-  console.error('❌ DB connection failed:', err.message);
-  app.listen(PORT, () => console.log('⚠️  Server running WITHOUT DB on port', PORT));
+mongoose.connection.once('open', () => {
+  app.listen(PORT, () => console.log(`🚀 BitX Tools running on port ${PORT}`));
+});
+
+mongoose.connection.on('error', err => {
+  console.error('❌ MongoDB runtime error:', err);
 });
 
 module.exports = app;
