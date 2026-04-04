@@ -1,38 +1,39 @@
 /**
  * tools.js — Central tool registry for Bit X Tools
- * 
- * HOW TO ADD A NEW TOOL:
- * 1. Create the tool's HTML file in the correct subfolder under /public/
- *    - AI tools    → /public/AI/
- *    - Downloaders → /public/DOWNLOAD/
- *    - Utilities   → /public/TOOL/
- * 2. Add a new entry to the TOOLS array below with the correct folder prefix in `link`
- * 3. That's it! It will automatically appear on the homepage.
  *
- * TOOL OBJECT FIELDS:
- *   id       {string}  Unique identifier (used for disable/enable in admin)
- *   name     {string}  Display name
- *   cat      {string}  Category — must match one of the CATEGORIES list
- *   icon     {string}  Font Awesome icon name (without 'fa-')
- *   fab      {boolean} true = Font Awesome Brands class, false = Solid
- *   color    {string}  Hex color for the icon
- *   desc     {string}  Short description shown on the card
- *   link     {string}  URL path or external link
- *   badge    {string}  Optional: 'hot' | 'new' | 'ai'
- *   section  {string}  Optional: sub-section label shown inside card
- *   usage    {string}  Optional: short usage pill text (e.g. "Paste URL → Download")
+ * HOW TO ADD A NEW TOOL:
+ * 1. Create the HTML file in the correct subfolder:
+ *    AI tools    → /public/AI/
+ *    Downloaders → /public/DOWNLOAD/
+ *    Utilities   → /public/TOOL/
+ * 2. Add an entry below with the correct folder prefix in `link`
+ * 3. Done — it appears on the homepage automatically.
+ *
+ * FIELDS:
+ *   id      {string}  Unique identifier (used for admin enable/disable)
+ *   name    {string}  Display name
+ *   cat     {string}  Category key
+ *   icon    {string}  Font Awesome icon name (without 'fa-')
+ *   fab     {boolean} true = fa-brands, false = fa-solid
+ *   color   {string}  Hex icon colour
+ *   desc    {string}  Short card description
+ *   link    {string}  URL path (folder-prefixed) or full external URL
+ *   badge   {string}  Optional: 'hot' | 'new' | 'ai'
+ *   section {string}  Optional: sub-section label on the card
+ *   usage   {string}  Optional: short usage hint pill
  */
 
 const TOOLS = [
-  // ── AI ─────────────────────────────────────────────────────────────────────
+
+  // ── AI — CHAT ──────────────────────────────────────────────────────────────
   {
-    id: 'ai-chat-gpt4o',
-    name: 'AI Chat (AskAI)',
+    id: 'ai-chat-askai',
+    name: 'AskAI (ChatGPT 4o)',
     cat: 'AI',
     icon: 'robot',
     fab: false,
     color: '#4f8ef7',
-    desc: 'Chat with GPT-4o powered AI. Ask anything and get instant smart answers.',
+    desc: 'Chat with GPT-4o powered AskAI. Ask anything and get instant smart answers.',
     link: 'AI/ai-chat.html',
     badge: 'hot',
     section: 'Chat',
@@ -40,12 +41,12 @@ const TOOLS = [
   },
   {
     id: 'ai-chat-talkai',
-    name: 'TalkAI (GPT-4)',
+    name: 'TalkAI (GPT-4.1-Nano)',
     cat: 'AI',
     icon: 'comments',
     fab: false,
     color: '#7c5cfc',
-    desc: 'Powerful GPT-4 conversational AI for in-depth questions and responses.',
+    desc: 'GPT-4.1-Nano conversational AI for in-depth questions and responses.',
     link: 'AI/ai-chat.html?model=talkai',
     badge: 'ai',
     section: 'Chat',
@@ -53,12 +54,12 @@ const TOOLS = [
   },
   {
     id: 'ai-chat-dolphin',
-    name: 'Dolphin AI',
+    name: 'Dolphin AI (24B)',
     cat: 'AI',
     icon: 'water',
     fab: false,
     color: '#06b6d4',
-    desc: 'Dolphin AI chat model — fast, uncensored, and helpful.',
+    desc: 'Dolphin 24B logical AI — fast, uncensored, and helpful.',
     link: 'AI/ai-chat.html?model=dolphin',
     badge: 'ai',
     section: 'Chat',
@@ -66,12 +67,12 @@ const TOOLS = [
   },
   {
     id: 'ai-chat-claude',
-    name: 'Claude AI',
+    name: 'Claude 3.5 Sonnet',
     cat: 'AI',
     icon: 'brain',
     fab: false,
     color: '#a855f7',
-    desc: 'Claude AI by Anthropic — thoughtful, nuanced, and accurate.',
+    desc: 'Claude 3.5 Sonnet by Anthropic — thoughtful, nuanced, and accurate.',
     link: 'AI/ai-chat.html?model=claude',
     badge: 'ai',
     section: 'Chat',
@@ -79,16 +80,114 @@ const TOOLS = [
   },
   {
     id: 'ai-chat-venice',
-    name: 'Venice AI',
+    name: 'Venice AI (GLM-4.6)',
     cat: 'AI',
     icon: 'landmark',
     fab: false,
     color: '#fb923c',
-    desc: 'Venice AI — privacy-first AI chat powered by open models.',
+    desc: 'Venice AI — privacy-first chat powered by GLM-4.6 open model.',
     link: 'AI/ai-chat.html?model=venice',
     section: 'Chat',
-    usage: 'Private chat → Open models'
+    usage: 'Private chat → Open model'
   },
+  {
+    id: 'ai-chat-overchat',
+    name: 'Overchat (GPT-5.2-Nano)',
+    cat: 'AI',
+    icon: 'bolt',
+    fab: false,
+    color: '#f472b6',
+    desc: 'Overchat powered by GPT-5.2-Nano — fast and efficient AI replies.',
+    link: 'AI/ai-chat.html?model=overchat',
+    section: 'Chat',
+    usage: 'Chat → Fast reply'
+  },
+  {
+    id: 'ai-chat-aifree',
+    name: 'AI Free (GPT-5.2-Nano)',
+    cat: 'AI',
+    icon: 'circle-dot',
+    fab: false,
+    color: '#34d399',
+    desc: 'Free AI chat powered by GPT-5.2-Nano with no login required.',
+    link: 'AI/ai-chat.html?model=aifree',
+    section: 'Chat',
+    usage: 'No login → Free chat'
+  },
+  {
+    id: 'ai-chat-notegpt',
+    name: 'NoteGPT (GPT-4.1-Mini)',
+    cat: 'AI',
+    icon: 'note-sticky',
+    fab: false,
+    color: '#fbbf24',
+    desc: 'NoteGPT powered by GPT-4.1-Mini — great for notes and summaries.',
+    link: 'AI/ai-chat.html?model=notegpt',
+    section: 'Chat',
+    usage: 'Ask → Summary & notes'
+  },
+  {
+    id: 'ai-chat-writecream',
+    name: 'WriteCream (GPT-4o)',
+    cat: 'AI',
+    icon: 'pen-nib',
+    fab: false,
+    color: '#818cf8',
+    desc: 'WriteCream AI powered by GPT-4o — ideal for writing and content creation.',
+    link: 'AI/ai-chat.html?model=writecream',
+    section: 'Write',
+    usage: 'Prompt → AI written content'
+  },
+  {
+    id: 'ai-chat-writify',
+    name: 'Writify (GPT-4o-Turbo)',
+    cat: 'AI',
+    icon: 'feather',
+    fab: false,
+    color: '#2dd4bf',
+    desc: 'Writify powered by GPT-4o-Turbo — high quality creative writing AI.',
+    link: 'AI/ai-chat.html?model=writify',
+    section: 'Write',
+    usage: 'Topic → Creative content'
+  },
+  {
+    id: 'ai-chat-on4t',
+    name: 'On4T (GPT-5.2-Standard)',
+    cat: 'AI',
+    icon: 'microchip',
+    fab: false,
+    color: '#e879f9',
+    desc: 'On4T AI powered by GPT-5.2-Standard — balanced and reliable responses.',
+    link: 'AI/ai-chat.html?model=on4t',
+    section: 'Chat',
+    usage: 'Ask → Reliable answer'
+  },
+  {
+    id: 'ai-chat-openaiid',
+    name: 'ChatOpenAI (GPT-4o)',
+    cat: 'AI',
+    icon: 'comment-dots',
+    fab: false,
+    color: '#4ade80',
+    desc: 'ChatOpenAI interface powered by GPT-4o for versatile AI conversations.',
+    link: 'AI/ai-chat.html?model=openaiid',
+    section: 'Chat',
+    usage: 'Chat → GPT-4o power'
+  },
+  {
+    id: 'ai-chat-softorbits',
+    name: 'SoftOrbits (Gemini 1.5 Pro)',
+    cat: 'AI',
+    icon: 'satellite',
+    fab: false,
+    color: '#f59e0b',
+    desc: 'SoftOrbits AI powered by Gemini 1.5 Pro — Google\'s advanced model.',
+    link: 'AI/ai-chat.html?model=softorbits',
+    section: 'Chat',
+    usage: 'Ask → Gemini response'
+  },
+
+  // ── AI — IMAGE & DETECT ────────────────────────────────────────────────────
   {
     id: 'ai-image-gen',
     name: 'AI Image Generator',
@@ -96,11 +195,23 @@ const TOOLS = [
     icon: 'image',
     fab: false,
     color: '#f472b6',
-    desc: 'Generate stunning images from text prompts using AI image models.',
+    desc: 'Generate stunning AI images from text prompts using Zonerai AI — free, instant.',
     link: 'AI/ai-image.html',
     badge: 'new',
     section: 'Image',
     usage: 'Type prompt → Generate image'
+  },
+  {
+    id: 'ai-detector',
+    name: 'AI Text Detector',
+    cat: 'AI',
+    icon: 'magnifying-glass',
+    fab: false,
+    color: '#34d399',
+    desc: 'Detect whether a piece of text was written by AI or a human.',
+    link: 'AI/ai-detector.html',
+    section: 'Detect',
+    usage: 'Paste text → AI or Human?'
   },
 
   // ── DOWNLOAD ───────────────────────────────────────────────────────────────
@@ -154,7 +265,6 @@ const TOOLS = [
     section: 'Social',
     usage: 'Paste video URL → HD/SD'
   },
-
   {
     id: 'dl-spotify',
     name: 'Spotify DL',
@@ -191,7 +301,66 @@ const TOOLS = [
     section: 'Files',
     usage: 'Paste Mediafire link → Download'
   },
-
+  {
+    id: 'dl-mega',
+    name: 'Mega.nz DL',
+    cat: 'Download',
+    icon: 'database',
+    fab: false,
+    color: '#e11d48',
+    desc: 'Download files from Mega.nz links directly.',
+    link: 'DOWNLOAD/downloader.html?type=mega',
+    section: 'Files',
+    usage: 'Paste Mega link → Download'
+  },
+  {
+    id: 'dl-terabox',
+    name: 'Terabox DL',
+    cat: 'Download',
+    icon: 'box-archive',
+    fab: false,
+    color: '#06b6d4',
+    desc: 'Download files from Terabox links easily.',
+    link: 'DOWNLOAD/downloader.html?type=terabox',
+    section: 'Files',
+    usage: 'Paste Terabox link → Download'
+  },
+  {
+    id: 'dl-wallpaper',
+    name: 'Wallpaper Download',
+    cat: 'Download',
+    icon: 'panorama',
+    fab: false,
+    color: '#818cf8',
+    desc: 'Search and download beautiful HD wallpapers instantly.',
+    link: 'DOWNLOAD/wallpaper.html',
+    section: 'Images',
+    usage: 'Search → Download HD wallpaper'
+  },
+  {
+    id: 'dl-movies',
+    name: 'Movies & Anime',
+    cat: 'Download',
+    icon: 'film',
+    fab: false,
+    color: '#a855f7',
+    desc: 'Search Sinhala-dubbed movies and Chinese Anime. Get direct download links.',
+    link: 'DOWNLOAD/movies.html',
+    section: 'Movies',
+    usage: 'Search title → Download'
+  },
+  {
+    id: 'dl-anime',
+    name: 'Anime Search',
+    cat: 'Download',
+    icon: 'tv',
+    fab: false,
+    color: '#f472b6',
+    desc: 'Search and discover Chinese Anime / Donghua with episode lists.',
+    link: 'DOWNLOAD/movies.html?tab=anime',
+    section: 'Anime',
+    usage: 'Search title → Episodes'
+  },
 
   // ── TEXT ───────────────────────────────────────────────────────────────────
   {
@@ -231,72 +400,6 @@ const TOOLS = [
     section: 'Fonts',
     usage: 'Browse → Preview fonts'
   },
-  
-  // ── SEARCH ─────────────────────────────────────────────────────────────────
-  
-  {
-    id: 'search-wallpaper',
-    name: 'Wallpaper Search',
-    cat: 'Search',
-    icon: 'panorama',
-    fab: false,
-    color: '#818cf8',
-    desc: 'Find beautiful HD wallpapers by keyword from multiple sources.',
-    link: 'DOWNLOAD/wallpaper.html',
-    section: 'Images',
-    usage: 'Search → HD wallpapers'
-  },
-  {
-    id: 'search-anime',
-    name: 'Anime Search',
-    cat: 'Search',
-    icon: 'tv',
-    fab: false,
-    color: '#f472b6',
-    desc: 'Search and discover anime series with episode info and links.',
-    link: 'DOWNLOAD/wallpaper.html?type=anime',
-    section: 'Anime',
-    usage: 'Search title → Episodes'
-  },
-
-  // ── MOVIES ─────────────────────────────────────────────────────────────────
-  {
-    id: 'movies-search',
-    name: 'Movie Search',
-    cat: 'Movies',
-    icon: 'film',
-    fab: false,
-    color: '#a855f7',
-    desc: 'Search Sinhala-dubbed movies and find download links.',
-    link: 'DOWNLOAD/movies.html',
-    section: 'Sinhala',
-    usage: 'Search title → Download'
-  },
-  {
-    id: 'movies-sinsub',
-    name: 'Sinhalasub DL',
-    cat: 'Movies',
-    icon: 'subtitles',
-    fab: false,
-    color: '#7c5cfc',
-    desc: 'Download movies from Sinhalasub.lk with all quality options.',
-    link: 'DOWNLOAD/movies.html?tab=sinsub',
-    section: 'Sinhala',
-    usage: 'Search → All quality options'
-  },
-  {
-    id: 'movies-trailers',
-    name: 'Trailer Search',
-    cat: 'Movies',
-    icon: 'clapperboard',
-    fab: false,
-    color: '#fb923c',
-    desc: 'Search movie and TV trailers from YouTube.',
-    link: 'DOWNLOAD/movies.html?tab=trailers',
-    badge: 'new',
-    section: 'Trailers',
-    usage: 'Movie name → Watch trailer'
-  },
 
   // ── TOOLS ──────────────────────────────────────────────────────────────────
   {
@@ -324,7 +427,18 @@ const TOOLS = [
     section: 'Utility',
     usage: 'Paste URL → Short link'
   },
-
+  {
+    id: 'tool-news',
+    name: 'Sri Lanka News',
+    cat: 'Tools',
+    icon: 'newspaper',
+    fab: false,
+    color: '#fb923c',
+    desc: 'Latest news from Daily Mirror and Hiru News Sri Lanka.',
+    link: 'TOOL/tools.html?type=news',
+    section: 'News',
+    usage: 'Open → Latest Sri Lanka news'
+  },
   {
     id: 'tool-telegram-stickers',
     name: 'Telegram Stickers',
@@ -339,41 +453,42 @@ const TOOLS = [
   },
   {
     id: 'tool-sinhala-song',
-    name: 'Sinhala Song',
+    name: 'Sinhala Songs',
     cat: 'Tools',
     icon: 'music',
     fab: false,
     color: '#f472b6',
-    desc: 'Search and download Sinhala songs by name.',
+    desc: 'Search and download Sinhala songs by name or artist.',
     link: 'TOOL/tools.html?type=sinsong',
     section: 'Music',
     usage: 'Search song → Download'
   },
   {
-    id: 'tool-news',
-    name: 'Daily Mirror News',
+    id: 'translator',
+    name: 'Language Translator',
     cat: 'Tools',
-    icon: 'newspaper',
+    icon: 'language',
     fab: false,
-    color: '#fb923c',
-    desc: 'Latest news from Daily Mirror Sri Lanka.',
-    link: 'TOOL/tools.html?type=news',
-    section: 'News',
-    usage: 'Open → Latest Sri Lanka news'
+    color: '#818cf8',
+    desc: 'Translate text instantly between multiple languages including Sinhala.',
+    link: 'TOOL/translator.html',
+    badge: 'new',
+    section: 'Utility',
+    usage: 'Enter text → Choose language → Translate'
   },
-{
-  id: 'translator',
-  name: 'Multi-Translator',
-  cat: 'Tools',
-  icon: 'language', // Standard icon for translation
-  fab: false,
-  color: '#4f8ef7', 
-  desc: 'Translate text instantly between multiple languages',
-  link: 'TOOL/translator.html',
-  badge: 'new',
-  section: 'Utility',
-  usage: 'Enter text → Choose language → Get translation'
-    }
+  {
+    id: 'tool-exchange-rate',
+    name: 'Currency Converter',
+    cat: 'Tools',
+    icon: 'coins',
+    fab: false,
+    color: '#fbbf24',
+    desc: 'Convert currencies with live exchange rates from around the world.',
+    link: 'TOOL/exchangerate.html',
+    section: 'Finance',
+    usage: 'Enter amount → Convert currency'
+  }
+
 ];
 
 // Export for Node.js require() — must be unconditional
