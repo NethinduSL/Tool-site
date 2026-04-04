@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Currency Converter — Bit X Tools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0F0F23;
+      --bg-secondary: #1A1B2E;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A0A0;
+      --accent-start: #7C3AED;
+      --accent-end: #8B5CF6;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --backdrop-blur: blur(20px);
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #F8FAFC;
+      --bg-secondary: #FFFFFF;
+      --glass-bg: rgba(0, 0, 0, 0.05);
+      --glass-border: rgba(0, 0, 0, 0.1);
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      color: var(--text-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Navbar Styling */
+    .navbar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 8px 15px;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+    }
+
+    .logo-container i {
+      color: #FFFFFF;
+      background: var(--accent-start);
+      padding: 6px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .logo-container span {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .back-btn:hover {
+      background: var(--glass-border);
+      transform: translateY(-2px);
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-primary);
+    }
+
+    .theme-toggle:hover {
+      background: var(--glass-border);
+      transform: scale(1.05);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding-top: 120px;
+      padding-bottom: 60px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .hero-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .hero-title i {
+      font-size: 40px;
+      color: var(--accent-start);
+      background: rgba(124, 58, 237, 0.1);
+      padding: 12px;
+      border-radius: 15px;
+    }
+
+    .hero-title h2 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      color: var(--text-secondary);
+      font-size: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .wrapper {
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--glass-bg);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 24px;
+      padding: 30px;
+    }
+
+    form .amount p {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-start);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    form input {
+      width: 100%;
+      height: 55px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      outline: none;
+      font-size: 18px;
+      padding: 0 20px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    form input:focus {
+      border-color: var(--accent-start);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .drop-list {
+      display: flex;
+      margin-top: 25px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .drop-list .from, .drop-list .to {
+      flex: 1;
+    }
+
+    .drop-list p {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .select-box {
+      display: flex;
+      height: 50px;
+      align-items: center;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0 15px;
+      transition: all 0.3s ease;
+    }
+
+    .select-box:hover {
+      border-color: var(--accent-start);
+    }
+
+    .select-box img {
+      max-width: 24px;
+      border-radius: 2px;
+    }
+
+    .select-box select {
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      color: var(--text-primary);
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .select-box select option {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .drop-list .icon {
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 20px;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+    }
+
+    .drop-list .icon:hover {
+      color: var(--accent-start);
+      transform: rotate(180deg);
+      background: var(--glass-border);
+    }
+
+    .exchange-rate {
+      font-size: 18px;
+      font-weight: 500;
+      margin: 25px 0;
+      text-align: center;
+      color: var(--text-primary);
+      padding: 15px;
+      background: rgba(124, 58, 237, 0.1);
+      border-radius: 12px;
+      border: 1px dashed var(--accent-start);
+    }
+
+    .convert-btn {
+      width: 100%;
+      height: 60px;
+      border: none;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .convert-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(124, 58, 237, 0.5);
+    }
+
+    .convert-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 24px; }
+      .hero-title h2 { font-size: 28px; }
+      .drop-list { flex-direction: column; gap: 10px; }
+      .drop-list .icon { margin-top: 0; transform: rotate(90deg); }
+      .drop-list .icon:hover { transform: rotate(270deg); }
+      .navbar { flex-direction: column; gap: 15px; top: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <a href="https://bit-x-tools.vercel.app/" class="logo-container">
+      <i class="fas fa-bolt"></i>
+      <span>Bit X Tools</span>
+    </a>
+    <div class="nav-actions">
+      <a href="https://bit-x-tools.vercel.app/index.html" class="back-btn" title="Back">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back</span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </div>
+
+  <main>
+    <div class="container">
+      <div class="hero-section">
+        <div class="hero-title">
+          <i class="fas fa-coins"></i>
+          <h2>Currency Converter</h2>
+        </div>
+        <p class="hero-desc">Convert between 160+ world currencies instantly with real-time exchange rates.</p>
+      </div>
+
+      <div class="wrapper">
+        <form action="#">
+          <div class="amount">
+            <p>Enter Amount</p>
+            <input type="number" value="1" min="1">
+          </div>
+          <div class="drop-list">
+            <div class="from">
+              <p>From</p>
+              <div class="select-box">
+                <img src="https://flagcdn.com/48x36/us.png" alt="flag">
+                <select id="fromCurrency"></select>
+              </div>
+            </div>
+            <div class="icon"><i class="fas fa-exchange-alt"></i></div>
+            <div class="to">
+              <p>To</p>
+              <div class="select-box">
+                <img src="https://flagcdn.com/48x36/lk.png" alt="flag">
+                <select id="toCurrency"></select>
+              </div>
+            </div>
+          </div>
+          <div class="exchange-rate">Getting exchange rate...</div>
+          <button class="convert-btn">
+            <i class="fas fa-sync-alt"></i>
+            Get Exchange Rate
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Full country list mapping for flags
+    const country_list = {
+      "AED":"AE","AFN":"AF","ALL":"AL","AMD":"AM","ANG":"AN","AOA":"AO","ARS":"AR","AUD":"AU","AWG":"AW","AZN":"AZ","BAM":"BA","BBD":"BB","BDT":"BD","BGN":"BG","BHD":"BH","BIF":"BI","BMD":"BM","BND":"BN","BOB":"BO","BRL":"BR","BSD":"BS","BTN":"BT","BWP":"BW","BYN":"BY","BZD":"BZ","CAD":"CA","CDF":"CD","CHF":"CH","CLP":"CL","CNY":"CN","COP":"CO","CRC":"CR","CUP":"CU","CVE":"CV","CZK":"CZ","DJF":"DJ","DKK":"DK","DOP":"DO","DZD":"DZ","EGP":"EG","ERN":"ER","ETB":"ET","EUR":"EU","FJD":"FJ","FKP":"FK","GBP":"GB","GEL":"GE","GHS":"GH","GIP":"GI","GMD":"GM","GNF":"GN","GTQ":"GT","GYD":"GY","HKD":"HK","HNL":"HN","HRK":"HR","HTG":"HT","HUF":"HU","IDR":"ID","ILS":"IL","INR":"IN","IQD":"IQ","IRR":"IR","ISK":"IS","JMD":"JM","JOD":"JO","JPY":"JP","KES":"KE","KGS":"KG","KHR":"KH","KMF":"KM","KRW":"KR","KWD":"KW","KYD":"KY","KZT":"KZ","LAK":"LA","LBP":"LB","LKR":"LK","LRD":"LR","LSL":"LS","LYD":"LY","MAD":"MA","MDL":"MD","MGA":"MG","MKD":"MK","MMK":"MM","MNT":"MN","MOP":"MO","MRU":"MR","MUR":"MU","MVR":"MV","MWK":"MW","MXN":"MX","MYR":"MY","MZN":"MZ","NAD":"NA","NGN":"NG","NIO":"NI","NOK":"NO","NPR":"NP","NZD":"NZ","OMR":"OM","PAB":"PA","PEN":"PE","PGK":"PG","PHP":"PH","PKR":"PK","PLN":"PL","PYG":"PY","QAR":"QA","RON":"RO","RSD":"RS","RUB":"RU","RWF":"RW","SAR":"SA","SBD":"SB","SCR":"SC","SDG":"SD","SEK":"SE","SGD":"SG","SHP":"SH","SLL":"SL","SOS":"SO","SRD":"SR","SSP":"SS","STN":"ST","SYP":"SY","SZL":"SZ","THB":"TH","TJS":"TJ","TMT":"TM","TND":"TN","TOP":"TO","TRY":"TR","TTD":"TT","TWD":"TW","TZS":"TZ","UAH":"UA","UGX":"UG","USD":"US","UYU":"UY","UZS":"UZ","VES":"VE","VND":"VN","VUV":"VU","WST":"WS","XAF":"CF","XCD":"SC","XOF":"SN","XPF":"PF","YER":"YE","ZAR":"ZA","ZMW":"ZM","ZWL":"ZW"
+    };
+
+    const dropList = document.querySelectorAll("form select"),
+          fromCurrency = document.querySelector("#fromCurrency"),
+          toCurrency = document.querySelector("#toCurrency"),
+          getButton = document.querySelector("form button"),
+          exchangeIcon = document.querySelector("form .icon"),
+          amountInput = document.querySelector("form input"),
+          exchangeRateTxt = document.querySelector("form .exchange-rate");
+
+    // Populate dropdowns
+    for (let i = 0; i < dropList.length; i++) {
+      for (let currency_code in country_list) {
+        let selected = i == 0 ? (currency_code == "USD" ? "selected" : "") : (currency_code == "LKR" ? "selected" : "");
+        let optionTag = `<option value="${currency_code}" ${selected}>${currency_code}</option>`;
+        dropList[i].insertAdjacentHTML("beforeend", optionTag);
+      }
+      dropList[i].addEventListener("change", e => { loadFlag(e.target); });
+    }
+
+    function loadFlag(element) {
+      for (let code in country_list) {
+        if (code == element.value) {
+          let imgTag = element.parentElement.querySelector("img");
+          imgTag.src = `https://flagcdn.com/48x36/${country_list[code].toLowerCase()}.png`;
+        }
+      }
+    }
+
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.documentElement;
+
+    function setTheme(theme) {
+      if (theme === 'light') {
+        html.setAttribute('data-theme', 'light');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const current = html.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    setTheme(localStorage.getItem('theme') || 'dark');
+
+    // Swap currencies
+    exchangeIcon.addEventListener("click", () => {
+      let tempCode = fromCurrency.value;
+      fromCurrency.value = toCurrency.value;
+      toCurrency.value = tempCode;
+      loadFlag(fromCurrency);
+      loadFlag(toCurrency);
+      getExchangeRate();
+    });
+
+    // Get exchange rate
+    window.addEventListener("load", () => { getExchangeRate(); });
+    getButton.addEventListener("click", e => {
+      e.preventDefault();
+      getExchangeRate();
+    });
+
+    async function getExchangeRate() {
+      let amountVal = amountInput.value;
+      if (amountVal == "" || amountVal == "0") {
+        amountInput.value = "1";
+        amountVal = 1;
+      }
+      
+      exchangeRateTxt.innerText = "Getting exchange rate...";
+      getButton.disabled = true;
+      getButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+
+      const apiKey = "f53e89d442f4063ac21b8172";
+      const url = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/${fromCurrency.value}`;
+
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.result === "success") {
+          let exchangeRate = result.conversion_rates[toCurrency.value];
+          let totalExRate = (amountVal * exchangeRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          exchangeRateTxt.innerText = `${amountVal} ${fromCurrency.value} = ${totalExRate} ${toCurrency.value}`;
+        } else {
+          throw new Error();
+        }
+      } catch (error) {
+        exchangeRateTxt.innerText = "Something went wrong";
+      } finally {
+        getButton.disabled = false;
+        getButton.innerHTML = '<i class="fas fa-sync-alt"></i> Get Exchange Rate';
+      }
+    }
+  </script>
+</body>
+</html>
