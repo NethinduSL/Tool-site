@@ -396,7 +396,11 @@ function clearTok(){localStorage.removeItem('bxt_token');}
 
 async function initAuth(){
   if(!tok())return;
-  try{const r=await fetch('/api/auth/me',{headers:{Authorization:'Bearer '+tok()}});const d=await r.json();if(d.ok)applyUser(d.user);else{clearTok();// unlimited mode - no limit bar}}catch{// unlimited mode - no limit bar}
+  try{
+    const r=await fetch('/api/auth/me',{headers:{Authorization:'Bearer '+tok()}});
+    const d=await r.json();
+    if(d.ok)applyUser(d.user);else clearTok();
+  }catch(e){}
 }
 function applyUser(u){
   me=u;
