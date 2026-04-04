@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Bit X Tools</title>
+<title>Bit X Tools — Free Online Tools Powered by Bit X APIs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -269,11 +269,8 @@ footer{position:relative;z-index:2;border-top:1px solid var(--bd);padding:36px 2
     <span class="line"><span class="word cyan" style="animation-delay:.46s">Online</span>&nbsp;<span class="word" style="animation-delay:.54s">Toolset</span></span>
   </h1>
   <p class="hero-sub">AI chat, media downloaders, text converters, and more — all free, all instant.</p>
-    <div style="font-size:11px;color:var(--tx2);margin-top:5px">Sign in for unlimited access</div>
-  </div>
   <div class="hero-ctas">
     <a href="#tools" class="hero-cta-primary"><i class="fas fa-grid-2"></i> Browse All Tools</a>
-    <button class="hero-cta-secondary" id="heroAuthBtn" onclick="openModal()"><i class="fas fa-user-plus"></i> Sign In / Register</button>
   </div>
 </section>
 
@@ -408,7 +405,6 @@ function applyUser(u){
   document.getElementById('avatarBtn').textContent=u.displayName[0].toUpperCase();
   document.getElementById('avatarName').textContent=u.displayName+' (@'+u.username+')';
   document.getElementById('avatarEmail').textContent=u.email;
-  document.getElementById('heroAuthBtn').style.display='none';
   const greet=document.getElementById('heroGreeting');
   const hour=new Date().getHours();
   const tod=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
@@ -422,7 +418,6 @@ function clearUser(){
   me=null;
   document.getElementById('authArea').style.display='block';
   document.getElementById('userArea').style.display='none';
-  document.getElementById('heroAuthBtn').style.display='';
   document.getElementById('heroGreeting').style.display='none';
   document.getElementById('adminMenuItem').style.display='none';
   // unlimited mode - no limit bar
@@ -585,8 +580,6 @@ function closeMobileMenu(){
 document.addEventListener('click',e=>{
   if(!e.target.closest('#hamburgerBtn')&&!e.target.closest('#mobileMenu'))closeMobileMenu();
 });
-
-}
 
 initAuth();
 loadTools();
